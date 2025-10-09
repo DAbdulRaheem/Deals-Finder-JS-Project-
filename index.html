@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="icon" type="image/x-icon" href="favicon.png">
+  <title>MyShop — Featured & Daily Deals (BrickSeek style)</title>
+  <style>
+    /* Reset */
+    *{box-sizing:border-box;margin:0;padding:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial}
+    html,body{height:100%}
+    body{
+      background: linear-gradient(180deg,#03061a 0%, #081730 40%, #0f2a4b 100%);
+      color:#e9f0ff;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      padding-bottom:80px;
+    }
+
+    /* Header */
+    header{
+      background:linear-gradient(90deg,#08306b 0,#0d47a1 60%);
+      padding:14px 22px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      position:sticky;top:0;z-index:120;
+      box-shadow:0 6px 18px rgba(2,6,23,0.6);
+    }
+    .logo{display:flex;align-items:center;gap:12px;cursor:pointer}
+    .logo .mark{width:42px;height:42px;border-radius:8px;background:#fff7;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff}
+    header h1{font-size:20px;color:#fff}
+
+    .header-right{display:flex;align-items:center;gap:12px}
+    #search-bar{padding:8px 12px;border-radius:20px;border:none;outline:none;min-width:220px;background:rgba(255,255,255,0.08);color:#fff}
+    #search-bar::placeholder{color:#d6e6ff33}
+
+    nav.desktop{display:flex;gap:10px}
+    nav.desktop a{color:#e6f2ffaa;text-decoration:none;padding:8px 10px;border-radius:8px;font-size:14px}
+    nav.desktop a:hover{color:#fff;background:rgba(255,255,255,0.04)}
+
+    #loginBtn,#cartBtn{background:#ffb74d;border:none;padding:8px 12px;border-radius:20px;cursor:pointer;color:#081730;font-weight:600}
+    #cartBtn{position:fixed;right:18px;bottom:18px;z-index:200;box-shadow:0 8px 20px rgba(3,6,23,0.6)}
+
+    /* Page layout */
+    .wrap{max-width:1200px;margin:26px auto;padding:0 18px}
+
+    /* Featured carousel */
+    .featured{
+      position:relative;margin-bottom:16px;
+    }
+    .featured .title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+    .featured h2{color:#ffeb3b;font-size:20px}
+    .carousel{display:flex;gap:12px;overflow:hidden}
+    .carousel-track{display:flex;gap:12px;transition:transform .4s ease}
+    .card{
+      min-width:300px;background:linear-gradient(180deg,#ffffff 0%,#f4f7ff 100%);color:#0d2545;border-radius:12px;padding:12px;box-shadow:0 6px 18px rgba(2,6,23,0.35);flex-shrink:0
+    }
+    .card img{width:100%;height:160px;object-fit:cover;border-radius:8px}
+    .card .meta{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+    .price{font-size:18px;font-weight:700}
+    .strike{font-size:13px;color:#9aaed6;text-decoration:line-through;margin-left:8px}
+    .badge{background:#ff5252;color:#fff;padding:6px 8px;border-radius:8px;font-weight:700;font-size:12px}
+    .view-btn{background:#0d47a1;color:#fff;padding:8px 10px;border-radius:10px;border:none;cursor:pointer}
+
+    .arrow-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(2,6,23,0.6);border:none;color:#fff;padding:10px;border-radius:10px;cursor:pointer}
+    .arrow-btn.left{left:-8px}
+    .arrow-btn.right{right:-8px}
+
+    /* Daily deals chips */
+    .chips{display:flex;gap:10px;overflow:auto;padding:10px 6px;margin:12px 0 20px}
+    .chip{background:rgba(255,255,255,0.06);padding:8px 12px;border-radius:999px;color:#e9f0ff;cursor:pointer;white-space:nowrap;border:1px solid transparent}
+    .chip.active{background:#ffeb3b;color:#081730;border-color:#ffd54f}
+
+    /* Category horizontal carousels */
+    .section{
+      margin-bottom:28px;
+      background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));
+      padding:14px;border-radius:12px
+    }
+    .section h3{color:#cfe6ff;margin-bottom:12px}
+    .h-carousel{position:relative}
+    .h-track{display:flex;gap:12px;overflow:hidden;padding-bottom:6px}
+    .product-card{min-width:220px;background:linear-gradient(180deg,#071033, #0b2747);border-radius:10px;padding:12px;color:#e9f0ff;flex-shrink:0;box-shadow:0 6px 18px rgba(1,8,24,0.45)}
+    .product-card img{width:100%;height:120px;object-fit:cover;border-radius:8px}
+    .product-card .p-title{font-weight:600;margin-top:8px;font-size:15px}
+    .product-card .p-sub{font-size:12px;color:#a7c1e6;margin-top:4px}
+    .product-card .p-price{font-weight:800;font-size:16px;margin-top:8px}
+    .product-card .p-off{background:#f44336;color:#fff;padding:4px 6px;border-radius:6px;font-size:12px;display:inline-block;margin-left:8px}
+    .product-actions{display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:8px}
+    .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.12);padding:7px 8px;border-radius:8px;color:#d9eefc;cursor:pointer}
+    .btn-primary{background:#ff9800;border:none;padding:8px 10px;border-radius:8px;color:#081730;font-weight:700;cursor:pointer}
+    .h-arrow{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.06);border:none;color:#fff;padding:8px;border-radius:8px;cursor:pointer}
+    .h-arrow.left{left:6px}
+    .h-arrow.right{right:6px}
+
+    /* Cart panel */
+    #cart{position:fixed;right:-380px;top:0;width:380px;height:100%;background:#fff;color:#061428;box-shadow:-8px 0 24px rgba(2,6,23,0.6);padding:16px;transition:right .36s ease;z-index:300;overflow:auto}
+    #cart.active{right:0}
+    #cart h2{color:#081730;margin-bottom:10px}
+    #cart .cart-header {display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;}
+    #cart .close-btn {background: none; border: none; font-size: 20px; font-weight: bold; color: #081730; cursor: pointer; padding: 0;}
+    #cart ul{list-style:none;margin-top:8px}
+    #cart li{display:flex;gap:10px;align-items:center;padding:10px 6px;border-bottom:1px solid #eef3f6}
+    #cart li img{width:56px;height:56px;object-fit:cover;border-radius:8px}
+    #cart .remove{background:#ff5252;color:#fff;border:none;padding:6px 8px;border-radius:6px;cursor:pointer}
+    #cart .checkout{background:#0d47a1;color:#fff;border:none;padding:10px;border-radius:8px;width:100%;margin-top:12px}
+
+    /* Login Modal */
+    #loginModal{position:fixed;inset:0;background:rgba(2,6,23,0.6);display:none;align-items:center;justify-content:center;z-index:400}
+    #loginModal.active{display:flex}
+    .login-box{background:#fff;padding:18px;border-radius:12px;width:360px;color:#081730}
+    .login-box h3{margin-bottom:10px}
+    .login-box input{width:100%;padding:8px;border-radius:8px;border:1px solid #cbdbea;margin-bottom:8px}
+    .login-box .tabs{display:flex;gap:6px;margin-bottom:8px}
+    .login-box .tabs button{flex:1;padding:8px;border-radius:8px;border:none;cursor:pointer}
+
+    /* Join Section */
+    .join-section {
+      background: linear-gradient(180deg,#07152d 0%,#0a2142 100%);
+      text-align: center;
+      padding: 80px 20px;
+      border-radius: 0 0 12px 12px;
+    }
+    .join-section h2 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 14px;
+      color: #fff;
+    }
+    .join-section p {
+      color: #d6e6ff;
+      margin-bottom: 28px;
+      font-size: 16px;
+    }
+    .join-btn {
+      background: #fff;
+      color: #0d47a1;
+      padding: 12px 26px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .3s ease;
+    }
+    .join-btn:hover {
+      background: #f4f7ff;
+    }
+      
+      /* Dropdown styles */
+      .dropdown {
+        position: relative;
+      }
+      .dropdown > a::after {
+        content: " ▼";
+        font-size: 10px;
+      }
+      .dropdown-content {
+        display: none;
+        position: absolute;
+        top: 100%; left: 0;
+        background: #0d2545;
+        min-width: 200px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        z-index: 999;
+      }
+      .dropdown-content a {
+        display: block;
+        padding: 10px 14px;
+        color: #e9f0ff;
+        text-decoration: none;
+        font-size: 14px;
+      }
+      .dropdown-content a:hover {
+        background: rgba(255,255,255,0.08);
+        color: #fff;
+      }
+      .dropdown:hover .dropdown-content {
+        display: block;
+      }
+      /* As Seen On Section */
+      .asseenon {
+        background: linear-gradient(180deg,#03061a 0%, #081730 40%, #0f2a4b 100%);
+        padding: 60px 20px;
+        text-align: center;
+      }
+      
+      .asseenon h1 {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 40px;
+        color: #fff;
+      }
+      
+      /* Logo Grid */
+      .as-seen-on-logos {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 24px;
+        flex-wrap: wrap;
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+      
+      /* Each Logo Box */
+      .logo-box {
+        background: #fff;
+        padding: 18px 24px;
+        border-radius: 10px;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      
+      .logo-box:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+      }
+      
+      /* Logo Image */
+      .logo-box img {
+        height: 38px; /* medium size */
+        width: auto;
+        object-fit: contain;
+      }
+      /* Deal Timeline Section */
+      .deal-timeline {
+        background: linear-gradient(180deg,#0a1f3d 0%,#102c54 100%);
+        text-align: center;
+        padding: 80px 20px;
+        color: #fff;
+      }
+      
+      .deal-timeline h2 {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 12px;
+      }
+      
+      .deal-timeline p {
+        font-size: 16px;
+        color: #d6e6ff;
+        margin-bottom: 40px;
+      }
+      
+      /* White Box */
+      .timeline-box {
+        background: #fff;
+        color: #000;
+        padding: 40px 20px;
+        border-radius: 14px;
+        max-width: 1000px;
+        margin: 0 auto;
+        position: relative;
+      }
+      
+      /* Steps */
+      .timeline {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        text-align: left;
+        margin-bottom: 30px;
+      }
+      
+      .step {
+        width: 22%;
+        position: relative;
+      }
+      
+      .step h3 {
+        font-size: 16px;
+        font-weight: 600;
+        margin: 6px 0;
+      }
+      
+      .step p {
+        font-size: 14px;
+        color: #555;
+      }
+      
+      /* Dots */
+      .dot {
+        display: block;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        margin-bottom: 6px;
+      }
+      
+      .purple { background: #9c27b0; }
+      .blue   { background: #1976d2; }
+      .green  { background: #4caf50; }
+      .gray   { background: #9e9e9e; }
+      
+      /* Timeline Axis */
+      .timeline-axis {
+        border-top: 3px solid #000;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 10px;
+        font-size: 14px;
+      }
+      
+      .timeline-axis strong {
+        font-size: 16px;
+        font-weight: 700;
+      }
+      /* Retailer Logos Section */
+      .retailers {
+        background: linear-gradient(180deg,#0a1f3d 0%,#102c54 100%);
+        padding: 60px 20px;
+      }
+      
+      .retailer-logos {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 22px;
+        width: 1200px;
+        margin: 0 auto;
+      }
+      
+      .retailer-box {
+        background: #fff;
+        padding: 20px;
+        border-radius: 12px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 90px;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      
+      .retailer-box:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+      }
+      
+      .retailer-box img {
+        max-height: 40px;
+        width: 100px;
+        object-fit: contain;
+      }
+      
+      .deals-section {
+        text-align: center;
+        padding: 60px 20px;
+      }
+  
+      .deals-section h2 {
+        font-size: 32px;
+        margin-bottom: 20px;
+      }
+  
+      .deals-section button {
+        padding: 12px 25px;
+        font-size: 16px;
+        color: #fff;
+        background: #007bff;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 0.3s;
+        margin-bottom: 50px;
+      }
+  
+      .deals-section button:hover {
+        background: #0056b3;
+      }
+  
+      .deals-cards {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+  
+      .deal-card {
+        background: #1e3a8a; /* blue tone */
+        border-radius: 12px;
+        padding: 25px;
+        width: 300px;
+        text-align: center;
+        transition: transform 0.3s, box-shadow 0.3s;
+      }
+  
+      .deal-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.3);
+      }
+  
+      .deal-card h3 {
+        font-size: 20px;
+        margin-bottom: 15px;
+        color: #fff;
+      }
+  
+      .deal-card p {
+        font-size: 14px;
+        color: #e0e0e0;
+        margin-bottom: 20px;
+        line-height: 1.5;
+      }
+  
+      .deal-card img {
+        width: 100%;
+        border-radius: 8px;
+      }
+  
+      /* Responsive */
+      @media (max-width: 992px) {
+        .deals-cards {
+          flex-direction: column;
+          align-items: center;
+        }
+      }      
+      
+    /* Responsive */
+    @media(max-width:900px){
+      .wrap{max-width:940px}
+      .card{min-width:260px}
+    }
+    @media(max-width:640px){
+      header{padding:10px}
+      #search-bar{display:none}
+      .card{min-width:270px}
+      .product-card{min-width:200px}
+      nav.desktop{display:none}
+      .chips{padding-left:6px}
+    }
+  </style>
+</head>
+<div>
+
+  <header>
+    <div class="logo" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+      <div class="mark" style="background-image:url('favicon.png')"></div>
+      <h1>DealsRadar</h1>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <input id="search-bar" placeholder="Search deals, brands, stores..." />
+      <nav class="desktop">
+        <a href="#">Home</a>
+        
+        <div class="dropdown">
+          <a href="#">Deals</a>
+          <div class="dropdown-content">
+            <a href="#">Today's Deals</a>
+            <a href="#">Local Deals</a>
+            <a href="#">Online Deals</a>
+            <a href="#">Used Deals</a>
+            <a href="#">Bestselling Deals</a>
+            <a href="#">Local Deals by Store</a>
+          </div>
+        </div>
+  
+        <div class="dropdown">
+          <a href="#">Categories</a>
+          <div class="dropdown-content">
+            <a href="#">Health & Beauty</a>
+            <a href="#">Electronics</a>
+            <a href="#">Tools</a>
+            <a href="#">Appliances</a>
+          </div>
+        </div>
+  
+        <a href="#">Store</a>
+        <a href="#">Help</a>
+      </nav>
+      <div class="header-right">
+        <button id="loginBtn" onclick="openLogin()">Login</button>
+      </div>
+    </div>
+  </header>
+
+  <section class="join-section">
+    <h2>Join Today</h2>
+    <p>Get started with a free account to view deals online and in your local stores!</p>
+    <button class="join-btn">Get Started</button>
+  </section>
+
+
+<div class="wrap">
+  <section class="featured">
+    <div class="title-row">
+      <h2>Featured Deals</h2>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div style="font-size:13px;color:#bcd6ff">Hot picks curated for you</div>
+        <button class="view-btn" onclick="viewAllFeatured()">View All</button>
+      </div>
+    </div>
+
+    <div class="carousel" id="featuredCarousel">
+      <button class="arrow-btn left" onclick="featuredScroll(-1)">◀</button>
+      <div class="carousel-track" id="featuredTrack"></div>
+      <button class="arrow-btn right" onclick="featuredScroll(1)">▶</button>
+    </div>
+  </section>
+
+  <div class="chips" id="chipsRow" role="tablist"></div>
+
+  <div id="categoriesContainer"></div>
+
+</div>
+
+<div id="cart">
+  <div class="cart-header">
+    <h2>Your Cart</h2>
+    <button class="close-btn" onclick="toggleCart()">X</button>
+  </div>
+  <ul id="cartItems"></ul>
+  <p style="margin-top:12px;font-weight:700">Total: $<span id="cartTotal">0.00</span></p>
+  <button class="checkout" onclick="checkout()">Checkout</button>
+</div>
+<button id="cartBtn" onclick="toggleCart()">🛒</button>
+
+<div id="loginModal">
+  <div class="login-box" onclick="event.stopPropagation()">
+    <div class="tabs">
+      <button id="tabLogin" onclick="switchForm('login')">Login</button>
+      <button id="tabSignup" onclick="switchForm('signup')">Signup</button>
+    </div>
+    <div id="loginForm">
+      <h3>Login</h3>
+      <input placeholder="Email" type="email" />
+      <input placeholder="Password" type="password" />
+      <button style="background:#0d47a1;color:#fff;padding:9px;border-radius:8px;border:none;cursor:pointer;">Sign in</button>
+    </div>
+    <div id="signupForm" style="display:none">
+      <h3>Create account</h3>
+      <input placeholder="Full name" />
+      <input placeholder="Email" type="email" />
+      <input placeholder="Password" type="password" />
+      <button style="background:#0d47a1;color:#fff;padding:9px;border-radius:8px;border:none;cursor:pointer;">Create</button>
+    </div>
+  </div>
+</div>
+<div style="background: linear-gradient(180deg,#03061a 0%, #081730 40%, #0f2a4b 100%);">
+<div class="asseenon">
+  <h1>As Seen On</h1>
+  <div class="as-seen-on-logos">
+    <div class="logo-box"><img src="https://brickseek.com/as-seen-on-logos/cnbc.webp" alt="CNBC"></div>
+    <div class="logo-box"><img src="https://brickseek.com/as-seen-on-logos/gma.webp" alt="GMA"></div>
+    <div class="logo-box"><img src="https://brickseek.com/as-seen-on-logos/yahoo_finance.webp" alt="Yahoo Finance"></div>
+    <div class="logo-box"><img src="https://brickseek.com/as-seen-on-logos/bi.webp" alt="Business Insider"></div>
+    <div class="logo-box"><img src="https://brickseek.com/as-seen-on-logos/readers_digest.webp" alt="Reader's Digest"></div>
+    <div class="logo-box"><img src="https://brickseek.com/as-seen-on-logos/hln.webp" alt="HLN"></div>
+    <div class="logo-box"><img src="https://brickseek.com/as-seen-on-logos/the_list.webp" alt="The List"></div>
+  </div>
+</div>
+<div class="deal-timeline">
+  <h2>First to Know, First to Save</h2>
+  <p>We find the best deals and we find them before anyone else.</p>
+
+  <div class="timeline-box">
+    <div class="timeline">
+      <div class="step step1">
+        <span class="dot purple"></span>
+        <h3>Deal Posted by Retailer</h3>
+        <p>Online or in Your Local Stores</p>
+      </div>
+
+      <div class="step step2">
+        <span class="dot blue"></span>
+        <h3>Deal Detected by BrickSeek</h3>
+        <p>You’re notified instantly</p>
+      </div>
+
+      <div class="step step3">
+        <span class="dot green"></span>
+        <h3>You Purchase Deal</h3>
+        <p>There’s no rush, you have time</p>
+      </div>
+
+      <div class="step step4">
+        <span class="dot gray"></span>
+        <h3>Deal is Found by Others</h3>
+        <p>It’s usually sold out by now</p>
+      </div>
+    </div>
+
+    <div class="timeline-axis">
+      <span>Time</span>
+      <strong>Typical Life Cycle of a Deal</strong>
+    </div>
+  </div>
+</div>
+<div class="retailers">
+  <div class="retailer-logos">
+    <div class="retailer-box"><img src="https://brickseek.com/retailer-logos/academy.webp" alt="Academy Sports + Outdoors"></div>
+    <div class="retailer-box"><img src="https://brickseek.com/retailer-logos/amazon.webp" alt="Amazon"></div>
+    <div class="retailer-box"><img src="https://brickseek.com/retailer-logos/bestbuy.webp" alt="Best Buy"></div>
+    <div class="retailer-box"><img src="https://brickseek.com/retailer-logos/bjs.webp" alt="BJ's"></div>
+    <div class="retailer-box"><img src="https://brickseek.com/retailer-logos/cabelas.webp" alt="Cabela's"></div>
+    <div class="retailer-box"><img src="https://brickseek.com/retailer-logos/cvs.webp" alt="CVS"></div>
+    <div class="retailer-box"><img src="https://brickseek.com/retailer-logos/dollargeneral.webp" alt="Dollar General"></div>
+    <div class="retailer-box"><img src="https://brickseek.com/retailer-logos/homedepot.webp" alt="Home Depot"></div>
+    <div class="retailer-box"><img src="https://brickseek.com/retailer-logos/kohls.webp" alt="Kohl's"></div>
+    <div class="retailer-box"><img src="https://brickseek.com/retailer-logos/lowes.webp" alt="Lowe's"></div>
+    <div class="retailer-box"><img src="https://brickseek.com/retailer-logos/macys.webp" alt="Macy's"></div>
+    <div class="retailer-box"><img src="https://brickseek.com/retailer-logos/officedepot.webp" alt="Office Depot OfficeMax"></div>
+    <div class="retailer-box"><img src="https://brickseek.com/retailer-logos/samsclub.webp" alt="Sam's Club"></div>
+    <div class="retailer-box"><img src="https://brickseek.com/retailer-logos/staples.webp" alt="Staples"></div>
+    <div class="retailer-box"><img src="https://brickseek.com/retailer-logos/target.webp" alt="Target"></div>
+    <div class="retailer-box"><img src="https://brickseek.com/retailer-logos/ulta.webp" alt="Ulta"></div>
+    <div class="retailer-box"><img src="https://brickseek.com/retailer-logos/walmart.webp" alt="Walmart"></div>
+  </div>
+</div>
+<div class="deals-section">
+  <h2>Tailored Deals Experience</h2>
+  <a onclick="openLogin()"><button>Sign Up</button></a>
+
+  <div class="deals-cards">
+    <div class="deal-card">
+      <h3>Deal Alerts</h3>
+      <p>
+        A single click lets you set a deal alert for anything from groceries to electronics. 
+        Get notified immediately when we find a deal that matches your needs!
+      </p>
+      <img src="https://via.placeholder.com/300x180?text=Deal+Alerts" alt="Deal Alerts">
+    </div>
+
+    <div class="deal-card">
+      <h3>Shopping List</h3>
+      <p>
+        Keep an eye on products you love by adding them to your Shopping List. 
+        Stay informed about price drops and availability.
+      </p>
+      <img src="https://via.placeholder.com/300x180?text=Shopping+List" alt="Shopping List">
+    </div>
+
+    <div class="deal-card">
+      <h3>Daily Email Digest</h3>
+      <p>
+        Receive a curated glance at the day’s top deals, both near you and online. 
+        Start your day with new opportunities to save!
+      </p>
+      <img src="https://via.placeholder.com/300x180?text=Email+Digest" alt="Email Digest">
+    </div>
+  </div>
+</div>
+</div>
+
+
+<script>
+  /* ---------- Data (inline) ---------- */
+  const featuredDeals = [
+    {id:'f1',title:'65\" 4K Smart TV — Save $300',img:'https://via.placeholder.com/800x450?text=65%22+4K+TV',price:499.99,was:799.99,off:'38% OFF',store:'BestStore'},
+    {id:'f2',title:'Convertible Baby Car Seat',img:'https://via.placeholder.com/800x450?text=Baby+Car+Seat',price:129.99,was:199.99,off:'35% OFF',store:'BabyShop'},
+    {id:'f3',title:'Gaming Laptop i7 16GB',img:'https://via.placeholder.com/800x450?text=Gaming+Laptop',price:899.99,was:1299.99,off:'31% OFF',store:'CompWorld'},
+    {id:'f4',title:'Robot Vacuum — WiFi',img:'https://via.placeholder.com/800x450?text=Robot+Vacuum',price:179.99,was:299.99,off:'40% OFF',store:'HomeMates'}
+  ];
+
+  const categories = [
+  {key:'Televisions',items:[
+    {id:'t1',title:'50" Smart LED',img:'https://via.placeholder.com/400x240?text=50%22+LED',price:349.99,was:599.99,off:42,store:'Electro'},
+    {id:'t2',title:'75" QLED',img:'https://via.placeholder.com/400x240?text=75%22+QLED',price:999.99,was:1499.99,off:33,store:'ScreenHub'},
+    {id:'t3',title:'43" Full HD',img:'https://via.placeholder.com/400x240?text=43%22+FullHD',price:219.99,was:299.99,off:27,store:'ValueTV'},
+    {id:'t4',title:'65" 4K UHD',img:'https://via.placeholder.com/400x240?text=65%22+UHD',price:599.99,was:899.99,off:33,store:'Electro'},
+    {id:'t5',title:'32" HD Ready',img:'https://via.placeholder.com/400x240?text=32%22+HD',price:149.99,was:229.99,off:35,store:'BudgetTV'},
+    {id:'t6',title:'55" OLED',img:'https://via.placeholder.com/400x240?text=55%22+OLED',price:899.99,was:1299.99,off:31,store:'ScreenHub'},
+    {id:'t7',title:'50" QLED',img:'https://via.placeholder.com/400x240?text=50%22+QLED',price:449.99,was:699.99,off:36,store:'Electro'},
+    {id:'t8',title:'40" Smart TV',img:'https://via.placeholder.com/400x240?text=40%22+Smart',price:199.99,was:299.99,off:33,store:'ValueTV'},
+    {id:'t9',title:'70" 4K UHD',img:'https://via.placeholder.com/400x240?text=70%22+UHD',price:799.99,was:1199.99,off:33,store:'Electro'},
+    {id:'t10',title:'85" QLED Premium',img:'https://via.placeholder.com/400x240?text=85%22+QLED',price:1799.99,was:2499.99,off:28,store:'ScreenHub'}
+  ]},
+
+  {key:'Car Seats',items:[
+    {id:'c1',title:'Infant Car Seat',img:'https://via.placeholder.com/400x240?text=Infant+Seat',price:89.99,was:149.99,off:40,store:'BabyCo'},
+    {id:'c2',title:'Convertible Seat',img:'https://via.placeholder.com/400x240?text=Convertible',price:129.99,was:199.99,off:35,store:'BabyCo'},
+    {id:'c3',title:'Booster Seat',img:'https://via.placeholder.com/400x240?text=Booster',price:69.99,was:99.99,off:30,store:'TinyTots'},
+    {id:'c4',title:'Toddler Car Seat',img:'https://via.placeholder.com/400x240?text=Toddler+Seat',price:139.99,was:199.99,off:30,store:'SafeRide'},
+    {id:'c5',title:'All-in-One Seat',img:'https://via.placeholder.com/400x240?text=All-in-One',price:179.99,was:249.99,off:28,store:'BabyCo'},
+    {id:'c6',title:'Travel Car Seat',img:'https://via.placeholder.com/400x240?text=Travel+Seat',price:109.99,was:159.99,off:31,store:'SafeRide'},
+    {id:'c7',title:'Deluxe Infant Seat',img:'https://via.placeholder.com/400x240?text=Deluxe+Infant',price:149.99,was:219.99,off:32,store:'TinyTots'},
+    {id:'c8',title:'Foldable Car Seat',img:'https://via.placeholder.com/400x240?text=Foldable',price:119.99,was:169.99,off:29,store:'BabyCo'},
+    {id:'c9',title:'Luxury Toddler Seat',img:'https://via.placeholder.com/400x240?text=Luxury+Toddler',price:199.99,was:279.99,off:28,store:'SafeRide'},
+    {id:'c10',title:'Lightweight Car Seat',img:'https://via.placeholder.com/400x240?text=Lightweight',price:99.99,was:139.99,off:29,store:'TinyTots'}
+  ]},
+
+  {key:'Computers',items:[
+    {id:'pc1',title:'Ultrabook 13"',img:'https://via.placeholder.com/400x240?text=Ultrabook+13',price:749.99,was:999.99,off:25,store:'CompWorld'},
+    {id:'pc2',title:'Gaming Desktop',img:'https://via.placeholder.com/400x240?text=Gaming+PC',price:1199.99,was:1599.99,off:25,store:'BuildIt'},
+    {id:'pc3',title:'All-in-One 21"',img:'https://via.placeholder.com/400x240?text=All-in-One',price:699.99,was:899.99,off:22,store:'CompWorld'},
+    {id:'pc4',title:'MacBook Pro',img:'https://via.placeholder.com/400x240?text=MacBook+Pro',price:1299.99,was:1499.99,off:13,store:'AppleHub'},
+    {id:'pc5',title:'Chromebook 14"',img:'https://via.placeholder.com/400x240?text=Chromebook+14',price:299.99,was:399.99,off:25,store:'ValueComp'},
+    {id:'pc6',title:'Mini PC',img:'https://via.placeholder.com/400x240?text=Mini+PC',price:199.99,was:249.99,off:20,store:'BuildIt'},
+    {id:'pc7',title:'Gaming Laptop',img:'https://via.placeholder.com/400x240?text=Gaming+Laptop',price:999.99,was:1299.99,off:23,store:'CompWorld'},
+    {id:'pc8',title:'Workstation',img:'https://via.placeholder.com/400x240?text=Workstation',price:1499.99,was:1899.99,off:21,store:'BuildIt'},
+    {id:'pc9',title:'Budget Laptop',img:'https://via.placeholder.com/400x240?text=Budget+Laptop',price:399.99,was:499.99,off:20,store:'ValueComp'},
+    {id:'pc10',title:'2-in-1 Laptop',img:'https://via.placeholder.com/400x240?text=2-in-1',price:599.99,was:749.99,off:20,store:'CompWorld'}
+  ]},
+
+  {key:'Baby & Toddler',items:[
+    {id:'b1',title:'Stroller XL',img:'https://via.placeholder.com/400x240?text=Stroller',price:159.99,was:229.99,off:30,store:'TinyTots'},
+    {id:'b2',title:'High Chair',img:'https://via.placeholder.com/400x240?text=High+Chair',price:79.99,was:119.99,off:33,store:'TinyTots'},
+    {id:'b3',title:'Baby Crib',img:'https://via.placeholder.com/400x240?text=Crib',price:199.99,was:279.99,off:28,store:'BabyCo'},
+    {id:'b4',title:'Playpen',img:'https://via.placeholder.com/400x240?text=Playpen',price:149.99,was:199.99,off:25,store:'TinyTots'},
+    {id:'b5',title:'Baby Walker',img:'https://via.placeholder.com/400x240?text=Walker',price:89.99,was:129.99,off:30,store:'BabyCo'},
+    {id:'b6',title:'Toddler Bed',img:'https://via.placeholder.com/400x240?text=Toddler+Bed',price:179.99,was:239.99,off:25,store:'TinyTots'},
+    {id:'b7',title:'Carrying Bag',img:'https://via.placeholder.com/400x240?text=Bag',price:39.99,was:59.99,off:33,store:'BabyCo'},
+    {id:'b8',title:'Baby Monitor',img:'https://via.placeholder.com/400x240?text=Monitor',price:129.99,was:179.99,off:28,store:'BabyCo'},
+    {id:'b9',title:'Nursing Pillow',img:'https://via.placeholder.com/400x240?text=Pillow',price:49.99,was:69.99,off:28,store:'TinyTots'},
+    {id:'b10',title:'Baby Bath Tub',img:'https://via.placeholder.com/400x240?text=Bath+Tub',price:59.99,was:89.99,off:33,store:'BabyCo'}
+  ]},
+
+  {key:'Health',items:[
+    {id:'h1',title:'Face Cream',img:'https://via.placeholder.com/400x240?text=Face+Cream',price:19.99,was:24.99,off:20,store:'HealthLab'},
+    {id:'h2',title:'Hair Dryer',img:'https://via.placeholder.com/400x240?text=Hair+Dryer',price:29.99,was:39.99,off:25,store:'BeautyCo'},
+    {id:'h3',title:'Electric Toothbrush',img:'https://via.placeholder.com/400x240?text=Toothbrush',price:49.99,was:69.99,off:28,store:'HealthLab'},
+    {id:'h4',title:'Protein Powder',img:'https://via.placeholder.com/400x240?text=Protein',price:59.99,was:79.99,off:25,store:'HealthLab'},
+    {id:'h5',title:'Yoga Mat',img:'https://via.placeholder.com/400x240?text=Yoga+Mat',price:29.99,was:39.99,off:25,store:'FitStore'},
+    {id:'h6',title:'Vitamins Pack',img:'https://via.placeholder.com/400x240?text=Vitamins',price:39.99,was:49.99,off:20,store:'HealthLab'},
+    {id:'h7',title:'Blood Pressure Monitor',img:'https://via.placeholder.com/400x240?text=BP+Monitor',price:69.99,was:99.99,off:30,store:'MediCare'},
+    {id:'h8',title:'Thermometer',img:'https://via.placeholder.com/400x240?text=Thermometer',price:14.99,was:19.99,off:25,store:'MediCare'},
+    {id:'h9',title:'Massage Gun',img:'https://via.placeholder.com/400x240?text=Massage+Gun',price:89.99,was:129.99,off:30,store:'FitStore'},
+    {id:'h10',title:'Hand Sanitizer Pack',img:'https://via.placeholder.com/400x240?text=Sanitizer',price:9.99,was:14.99,off:33,store:'HealthLab'}
+  ]},
+
+  {key:'Electronics',items:[
+    {id:'e1',title:'Wireless Headphones',img:'https://via.placeholder.com/400x240?text=Headphones',price:59.99,was:99.99,off:40,store:'AudioPlus'},
+    {id:'e2',title:'Smartphone',img:'https://via.placeholder.com/400x240?text=Smartphone',price:299.99,was:399.99,off:25,store:'PhoneShop'},
+    {id:'e3',title:'Smartwatch',img:'https://via.placeholder.com/400x240?text=Smartwatch',price:149.99,was:199.99,off:25,store:'GadgetWorld'},
+    {id:'e4',title:'Bluetooth Speaker',img:'https://via.placeholder.com/400x240?text=Speaker',price:79.99,was:119.99,off:33,store:'AudioPlus'},
+    {id:'e5',title:'Tablet 10"',img:'https://via.placeholder.com/400x240?text=Tablet+10',price:199.99,was:249.99,off:20,store:'PhoneShop'},
+    {id:'e6',title:'Drone',img:'https://via.placeholder.com/400x240?text=Drone',price:399.99,was:499.99,off:20,store:'GadgetWorld'},
+    {id:'e7',title:'DSLR Camera',img:'https://via.placeholder.com/400x240?text=DSLR',price:599.99,was:799.99,off:25,store:'CameraMart'},
+    {id:'e8',title:'Portable Charger',img:'https://via.placeholder.com/400x240?text=Charger',price:29.99,was:49.99,off:40,store:'AudioPlus'},
+    {id:'e9',title:'E-Reader',img:'https://via.placeholder.com/400x240?text=E-Reader',price:119.99,was:159.99,off:25,store:'PhoneShop'},
+    {id:'e10',title:'Webcam 4K',img:'https://via.placeholder.com/400x240?text=Webcam',price:69.99,was:99.99,off:30,store:'GadgetWorld'}
+  ]},
+  ];
+
+  /* ----------------- Cart Logic ----------------- */
+
+  // In-memory cart array
+  let cart = [];
+
+  /**
+   * Toggles the visibility of the cart panel.
+   */
+  function toggleCart() {
+    document.getElementById('cart').classList.toggle('active');
+  }
+
+  /**
+   * Renders the current state of the cart to the UI,
+   * including the list of items and the total price.
+   */
+  function renderCart() {
+    const cartItemsEl = document.getElementById('cartItems');
+    const cartTotalEl = document.getElementById('cartTotal');
+    let total = 0;
+
+    // Clear the current list
+    cartItemsEl.innerHTML = '';
+
+    if (cart.length === 0) {
+      cartItemsEl.innerHTML = '<li style="justify-content:center;color:#666">Your cart is empty.</li>';
+      cartTotalEl.textContent = '0.00';
+      document.getElementById('cartBtn').textContent = '🛒';
+      return;
+    }
+
+    // Generate HTML for each item and calculate total
+    cart.forEach(item => {
+      const li = document.createElement('li');
+      li.innerHTML = `
+        <img src="${item.img}" alt="${item.title}" />
+        <div style="flex-grow:1;display:flex;flex-direction:column;gap:2px">
+          <div style="font-weight:600;font-size:14px">${item.title}</div>
+          <div style="font-size:13px;color:#0d47a1">$${item.price.toFixed(2)}</div>
+        </div>
+        <button class="remove" onclick="removeFromCart('${item.id}')">Remove</button>
+      `;
+      cartItemsEl.appendChild(li);
+      total += item.price;
+    });
+
+    // Update total price and cart button icon
+    cartTotalEl.textContent = total.toFixed(2);
+    document.getElementById('cartBtn').textContent = `🛒 (${cart.length})`;
+  }
+
+  /**
+   * Adds an item to the cart.
+   * Finds the item in the `featuredDeals` or `categories` data structures.
+   * @param {string} id - The unique ID of the product to add.
+   */
+  function addToCart(id) {
+    // 1. Search in featuredDeals
+    let item = featuredDeals.find(deal => deal.id === id);
+
+    // 2. Search in categories
+    if (!item) {
+      for (const category of categories) {
+        item = category.items.find(product => product.id === id);
+        if (item) break;
+      }
+    }
+
+    if (item) {
+      // Create a cart-specific object
+      const cartItem = {
+        id: item.id,
+        title: item.title,
+        img: item.img,
+        // Ensure the price is treated as a number
+        price: parseFloat(item.price) 
+      };
+
+      cart.push(cartItem);
+      console.log(`Added ${item.title} to cart.`);
+      renderCart();
+      
+      // Automatically open cart when an item is added
+      const cartEl = document.getElementById('cart');
+      if (!cartEl.classList.contains('active')) {
+        cartEl.classList.add('active');
+      }
+    } else {
+      console.error(`Item with ID ${id} not found.`);
+    }
+  }
+
+  /**
+   * Removes an item from the cart.
+   * Finds the first instance of the item with the given ID and removes it.
+   * @param {string} id - The unique ID of the product to remove.
+   */
+  function removeFromCart(id) {
+    // Find the index of the first item that matches the ID
+    const index = cart.findIndex(item => item.id === id);
+
+    if (index > -1) {
+      const removedItem = cart[index];
+      // Remove only one item at the found index
+      cart.splice(index, 1);
+      console.log(`Removed ${removedItem.title} from cart.`);
+      renderCart();
+    } else {
+      console.warn(`Item with ID ${id} not found in cart.`);
+    }
+  }
+
+  /**
+   * Simulates the checkout process.
+   * Clears the cart and provides a user notification.
+   */
+  function checkout() {
+    if (cart.length === 0) {
+      alert('Your cart is empty. Nothing to checkout!');
+      return;
+    }
+
+    const total = document.getElementById('cartTotal').textContent;
+
+    // Simulate a successful checkout
+    alert(`Checkout successful! Total amount: $${total}. Thank you for your purchase!`);
+
+    // Clear the cart
+    cart = [];
+    renderCart();
+
+    // Close the cart panel
+    document.getElementById('cart').classList.remove('active');
+  }
+
+  /* ----------------- UI Helpers ----------------- */
+
+  function openLogin() {
+    document.getElementById('loginModal').classList.add('active');
+  }
+
+  function switchForm(form) {
+    document.getElementById('loginForm').style.display = form === 'login' ? 'block' : 'none';
+    document.getElementById('signupForm').style.display = form === 'signup' ? 'block' : 'none';
+    document.getElementById('tabLogin').style.background = form === 'login' ? '#0d47a1' : 'transparent';
+    document.getElementById('tabLogin').style.color = form === 'login' ? '#fff' : '#081730';
+    document.getElementById('tabSignup').style.background = form === 'signup' ? '#0d47a1' : 'transparent';
+    document.getElementById('tabSignup').style.color = form === 'signup' ? '#fff' : '#081730';
+  }
+
+  // Close modal when clicking outside
+  document.getElementById('loginModal').addEventListener('click', (e) => {
+    if (e.target.id === 'loginModal') {
+      e.target.classList.remove('active');
+    }
+  });
+
+
+  /* ----------------- Content Rendering ----------------- */
+  
+  // Featured deals rendering
+  function renderFeaturedDeals() {
+    const track = document.getElementById('featuredTrack');
+    track.innerHTML = featuredDeals.map(item => `
+      <div class="card">
+        <img src="${item.img}" alt="${item.title}" />
+        <div style="font-weight:700;margin-top:8px;font-size:16px">${item.title}</div>
+        <div class="meta">
+          <div>
+            <span class="price">$${item.price.toFixed(2)}</span>
+            <span class="strike">$${item.was.toFixed(2)}</span>
+          </div>
+          <div class="badge">${item.off}</div>
+        </div>
+        <div style="font-size:12px;color:#555;margin-top:6px">@${item.store}</div>
+        <button class="btn-primary" style="margin-top:10px;width:100%" onclick="addToCart('${item.id}')">Add to Cart</button>
+      </div>
+    `).join('');
+  }
+
+  // Category rendering
+  function renderCategories() {
+    const container = document.getElementById('categoriesContainer');
+    container.innerHTML = categories.map(category => `
+      <section class="section">
+        <h3>${category.key} Deals</h3>
+        <div class="h-carousel">
+          <button class="h-arrow left" onclick="scrollCategory('${category.key}', -1)">◀</button>
+          <div class="h-track" id="h-track-${category.key}">
+            ${category.items.map(item => `
+              <div class="product-card">
+                <img src="${item.img}" alt="${item.title}" />
+                <div class="p-title">${item.title}</div>
+                <div class="p-sub">@${item.store}</div>
+                <div class="p-price">$${item.price.toFixed(2)}<span class="p-off">${item.off}% OFF</span></div>
+                <div class="product-actions">
+                  <button class="btn-ghost">View</button>
+                  <button class="btn-primary" onclick="addToCart('${item.id}')">Add to Cart</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          <button class="h-arrow right" onclick="scrollCategory('${category.key}', 1)">▶</button>
+        </div>
+      </section>
+    `).join('');
+  }
+
+  // Daily Deals Chips (minimal implementation)
+  const dailyDealChips = ['Electronics', 'Home Goods', 'Apparel', 'Tools', 'Health & Beauty', 'Toys'];
+  function renderChips() {
+    const chipsRow = document.getElementById('chipsRow');
+    chipsRow.innerHTML = dailyDealChips.map((chip, index) => `
+      <div class="chip ${index === 0 ? 'active' : ''}" role="tab">${chip}</div>
+    `).join('');
+  }
+
+
+  /* ----------------- Carousel Scrolling Logic ----------------- */
+  const featuredTrack = document.getElementById('featuredTrack');
+  const featuredCarousel = document.getElementById('featuredCarousel');
+
+  function featuredScroll(direction) {
+    // Get the width of the first card plus the gap (12px)
+    const cardWidth = featuredTrack.children[0].offsetWidth + 12; 
+    featuredCarousel.scrollBy({
+      left: direction * cardWidth,
+      behavior: 'smooth'
+    });
+  }
+
+  function scrollCategory(key, direction) {
+    const track = document.getElementById(`h-track-${key}`);
+    // Get the width of the first card plus the gap (12px)
+    const cardWidth = track.children[0].offsetWidth + 12; 
+    track.scrollBy({
+      left: direction * cardWidth,
+      behavior: 'smooth'
+    });
+  }
+
+  function viewAllFeatured() {
+    alert('Navigating to All Featured Deals page!');
+  }
+
+  /* ----------------- Initialization ----------------- */
+  renderFeaturedDeals();
+  renderCategories();
+  renderChips();
+  // Initial render of cart (will show empty)
+  renderCart();
+</script>
+</html>

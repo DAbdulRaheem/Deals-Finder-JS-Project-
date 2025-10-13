@@ -39,7 +39,9 @@
     nav.desktop{display:flex;gap:10px}
     nav.desktop a{color:#e6f2ffaa;text-decoration:none;padding:8px 10px;border-radius:8px;font-size:14px}
     nav.desktop a:hover{color:#fff;background:rgba(255,255,255,0.04)}
-
+    .dropdown{position:relative}
+    .dropdown-content{display:none;position:absolute;top:36px;left:0;background:linear-gradient(90deg,#08306b 0,#0d47a1 60%);min-width:180px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.4);z-index:999}
+    
     #loginBtn,#cartBtn{background:#ffb74d;border:none;padding:8px 12px;border-radius:20px;cursor:pointer;color:#081730;font-weight:600}
     #cartBtn{position:fixed;right:18px;bottom:18px;z-index:200;box-shadow:0 8px 20px rgba(3,6,23,0.6)}
 
@@ -108,14 +110,45 @@
     #cart .checkout{background:#0d47a1;color:#fff;border:none;padding:10px;border-radius:8px;width:100%;margin-top:12px}
 
     /* Login Modal */
-    #loginModal{position:fixed;inset:0;background:rgba(2,6,23,0.6);display:none;align-items:center;justify-content:center;z-index:400}
-    #loginModal.active{display:flex}
-    .login-box{background:#fff;padding:18px;border-radius:12px;width:360px;color:#081730}
-    .login-box h3{margin-bottom:10px}
-    .login-box input{width:100%;padding:8px;border-radius:8px;border:1px solid #cbdbea;margin-bottom:8px}
-    .login-box .tabs{display:flex;gap:6px;margin-bottom:8px}
-    .login-box .tabs button{flex:1;padding:8px;border-radius:8px;border:none;cursor:pointer}
+    /* Login modal styles (for the inserted login/signup markup) */
+    #loginModal {position: fixed;inset: 0;display: none; /* toggle with .active */align-items: center;justify-content: center;background: rgba(2,6,23,0.6);z-index: 1000;padding: 28px;-webkit-backdrop-filter: blur(6px);backdrop-filter: blur(6px);}
+    
+    #loginModal.active { display: flex; }
+    
+    /* Card */
+    .login-box{width: 360px;max-width: calc(100% - 40px);background: #ffffff;color: #081730;padding: 18px;border-radius: 12px;box-shadow: 0 18px 50px rgba(2,6,23,0.45);transform-origin: center;animation: modal-pop .18s ease;font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+    
+    /* small pop animation */
+    @keyframes modal-pop{from{transform:translateY(6px) scale(.995);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+    
+    /* Tabs */
+    .login-box .tabs{display:flex;gap:8px;margin-bottom:12px;}
+    .login-box .tabs button{flex:1;padding:8px 10px;border-radius:8px;border:1px solid transparent;background:transparent;color:#0d47a1;font-weight:700;cursor:pointer;transition: all .16s ease;font-size:14px;}
+    
+    .login-box .tabs button:hover{ background: rgba(13,71,161,0.06); }
+    
+    .login-box .tabs button.active{background: linear-gradient(90deg,#ffeb3b,#ffd54f);color:#081730;box-shadow: 0 6px 18px rgba(13,71,161,0.06);}
+    
+    /* Forms */
+    .login-box h3{ margin:6px 0 8px;font-size:18px;color:#081730; }
+    .login-box input{width:100%;padding:10px 12px;margin-bottom:10px;border-radius:8px;border:1px solid #d1dbe8;outline:none;background:#fff;color:#081730;font-size:14px;transition: box-shadow .12s ease, border-color .12s ease;}
+    .login-box input::placeholder{ color:#9fb5d6; }
+    
+    /* Focus state */
+    .login-box input:focus{border-color:#82b1ff;box-shadow:0 6px 18px rgba(13,71,161,0.06);}
+    /* Primary button */
+    .login-box > button,.login-box button[onclick]{display:block;width:100%;padding:10px 12px;margin-top:6px;border-radius:8px;border:none;background: linear-gradient(90deg,#0d47a1,#08306b);color:#fff;font-weight:700;cursor:pointer;transition: transform .12s ease, box-shadow .12s ease;}
+    .login-box > button:hover,.login-box button[onclick]:hover{transform: translateY(-1px);box-shadow: 0 10px 30px rgba(13,71,161,0.12);}
 
+    /* Secondary text / messages */
+    .login-box .message{margin-top:8px;font-size:13px;color:#d32;min-height:18px;}
+    /* Small helper text */
+    .login-box .help{margin-top:8px;font-size:13px;color:#526887;}
+    /* Mobile adjustments */
+    @media (max-width:420px){.login-box{ padding:14px; width: 92%; }.login-box h3{ font-size:16px; }.login-box .tabs button{ padding:7px; font-size:13px; }}
+    /* Prevent modal contents from being selectable while dragging overlay */
+    #loginModal{ -webkit-user-select:none; user-select:none; }
+    .login-box{ -webkit-user-select:text; user-select:text; } 
     /* Join Section */
     .join-section {
       background: linear-gradient(180deg,#07152d 0%,#0a2142 100%);
@@ -976,25 +1009,30 @@
   <button class="checkout" onclick="checkout()">Checkout</button>
 </div>
 <button id="cartBtn" onclick="toggleCart()">🛒</button>
-
 <div id="loginModal">
   <div class="login-box" onclick="event.stopPropagation()">
     <div class="tabs">
-      <button id="tabLogin" onclick="switchForm('login')">Login</button>
+      <button id="tabLogin" class="active" onclick="switchForm('login')">Login</button>
       <button id="tabSignup" onclick="switchForm('signup')">Signup</button>
     </div>
+    <!-- Login Form -->
     <div id="loginForm">
       <h3>Login</h3>
-      <input placeholder="Email" type="email" />
-      <input placeholder="Password" type="password" />
-      <button style="background:#0d47a1;color:#fff;padding:9px;border-radius:8px;border:none;cursor:pointer;">Sign in</button>
+      <input id="loginEmail" placeholder="Email" type="email" />
+      <input id="loginPassword" placeholder="Password" type="password" />
+      <button onclick="login()">Sign in</button>
+      <p id="loginMessage" class="message"></p>
     </div>
+
+    <!-- Signup Form -->
     <div id="signupForm" style="display:none">
       <h3>Create account</h3>
-      <input placeholder="Full name" />
-      <input placeholder="Email" type="email" />
-      <input placeholder="Password" type="password" />
-      <button style="background:#0d47a1;color:#fff;padding:9px;border-radius:8px;border:none;cursor:pointer;">Create</button>
+      <input id="signupName" placeholder="Full name" />
+      <input id="signupEmail" placeholder="Email" type="email" />
+      <input id="signupPassword" placeholder="Password" type="password" />
+      <input id="confirmPassword" placeholder="Confirm Password" type="password" />
+      <button onclick="signup()">Create</button>
+      <p id="signupMessage" class="message"></p>
     </div>
   </div>
 </div>
@@ -1235,6 +1273,82 @@
   {id:'a10',title:'Blender',img:'https://via.placeholder.com/400x240?text=Blender',price:59.99,was:89.99,off:33,store:'KitchenPro'}
   ]}
   ];
+
+  // Switch between Login and Signup
+  function switchForm(form) {
+    const loginForm = document.getElementById("loginForm");
+    const signupForm = document.getElementById("signupForm");
+    const tabLogin = document.getElementById("tabLogin");
+    const tabSignup = document.getElementById("tabSignup");
+
+    if (form === "login") {
+      loginForm.style.display = "block";
+      signupForm.style.display = "none";
+      tabLogin.classList.add("active");
+      tabSignup.classList.remove("active");
+    } else {
+      loginForm.style.display = "none";
+      signupForm.style.display = "block";
+      tabSignup.classList.add("active");
+      tabLogin.classList.remove("active");
+    }
+  }
+
+  // Signup Logic
+  function signup() {
+    const name = document.getElementById("signupName").value.trim();
+    const email = document.getElementById("signupEmail").value.trim();
+    const password = document.getElementById("signupPassword").value;
+    const confirmPassword = document.getElementById("confirmPassword").value;
+    const message = document.getElementById("signupMessage");
+
+    message.textContent = "";
+
+    if (!name || !email || !password || !confirmPassword) {
+      message.textContent = "All fields are required!";
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      message.textContent = "Passwords do not match!";
+      return;
+    }
+
+    // Store user data (demo only)
+    localStorage.setItem("userEmail", email);
+    localStorage.setItem("userPassword", password);
+    localStorage.setItem("userName", name);
+
+    message.style.color = "green";
+    message.textContent = "Signup successful! You can now login.";
+    setTimeout(() => switchForm("login"), 1500);
+  }
+
+  // Login Logic
+  function login() {
+    const email = document.getElementById("loginEmail").value.trim();
+    const password = document.getElementById("loginPassword").value;
+    const message = document.getElementById("loginMessage");
+
+    message.textContent = "";
+
+    const storedEmail = localStorage.getItem("userEmail");
+    const storedPassword = localStorage.getItem("userPassword");
+    const storedName = localStorage.getItem("userName");
+
+    if (!email || !password) {
+      message.textContent = "Please enter both email and password!";
+      return;
+    }
+
+    if (email === storedEmail && password === storedPassword) {
+      message.style.color = "green";
+      message.textContent = `Welcome back, ${storedName}!`;
+      setTimeout(() => alert(`Logged in successfully as ${storedName}`), 600);
+    } else {
+      message.textContent = "Invalid email or password!";
+    }
+  }
 
   /* ----------------- Cart Logic with Local Storage ----------------- */
 

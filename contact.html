@@ -1,188 +1,595 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Contact Us — DealsRadar</title>
-  <link rel="icon" type="image/x-icon" href="favicon.png">
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #f5f7fa;
-    }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Contact Us — DealsRadar</title>
+    <link rel="icon" type="image/x-icon" href="favicon.png">
+    <style>
+        /* Global */
+        * { box-sizing: border-box; }
+        body {
+            font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(180deg,#f6f9fc 0%, #f1f6fb 100%);
+            color: #14213d;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
 
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.8rem 1.5rem;
-      background: #081730;
-      color: #fff;
-    }
+        a { color: inherit; text-decoration: none; }
 
-    header h1 {
-      margin: 0;
-      font-size: 1.5rem;
-      cursor: pointer;
-    }
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1.25rem;
+            background: linear-gradient(90deg,#081730, #0b2b55);
+            color: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: 0 2px 8px rgba(3,10,20,0.25);
+        }
 
-    .contact-container {
-      max-width: 700px;
-      background: #fff;
-      margin: 2rem auto;
-      padding: 2rem;
-      border-radius: 10px;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-    }
+        .logo {
+            display:flex;
+            align-items:center;
+            gap:0.75rem;
+            cursor: pointer;
+        }
 
-    .contact-container h2 {
-      margin-top: 0;
-      text-align: center;
-      color: #081730;
-    }
+        .mark {
+            width:40px;
+            height:40px;
+            background-image:url('favicon.png');
+            background-size:cover;
+            background-position:center;
+            border-radius:8px;
+            flex-shrink:0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+        }
 
-    .contact-form {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      margin-top: 1rem;
-    }
+        header h1 {
+            margin: 0;
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+        }
 
-    .contact-form label {
-      font-weight: bold;
-    }
+        .header-container {
+            display:flex;
+            gap:1rem;
+            align-items:center;
+            width: 100%;
+            max-width: 1000px;
+            margin-left: 1rem;
+        }
 
-    .contact-form input,
-    .contact-form textarea {
-      padding: 0.7rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 1rem;
-      width: 100%;
-    }
+        /* Search */
+        #search-bar {
+            flex:1;
+            max-width:420px;
+            padding:0.5rem 0.75rem;
+            border-radius:8px;
+            border: none;
+            outline: none;
+            font-size:0.95rem;
+            background: rgba(255,255,255,0.12);
+            color: #fff;
+            transition: background 0.2s, box-shadow 0.2s;
+        }
+        #search-bar::placeholder { color: rgba(255,255,255,0.8); }
+        #search-bar:focus { background: rgba(255,255,255,0.18); box-shadow: 0 4px 18px rgba(4,12,30,0.2); }
 
-    .contact-form textarea {
-      min-height: 120px;
-      resize: vertical;
-    }
+        /* Navigation */
+        nav.desktop {
+            display:flex;
+            gap:0.5rem;
+            align-items:center;
+        }
 
-    .contact-form button {
-      padding: 0.8rem;
-      background: #081730;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
+        nav.desktop > a,
+        nav.desktop .dropdown > a {
+            padding:0.45rem 0.6rem;
+            color: rgba(255,255,255,0.95);
+            border-radius:6px;
+            font-size:0.95rem;
+        }
 
-    .contact-form button:hover {
-      background: #0b2762;
-    }
+        nav.desktop > a:hover,
+        nav.desktop .dropdown > a:hover {
+            background: rgba(255,255,255,0.06);
+        }
 
-    .contact-info {
-      margin-top: 2rem;
-      text-align: center;
-      color: #333;
-    }
+        .dropdown {
+            position:relative;
+        }
 
-    .contact-info p {
-      margin: 0.3rem 0;
-    }
-  </style>
+        .dropdown-content {
+            display:none;
+            position:absolute;
+            top:calc(100% + 8px);
+            left:0;
+            background:#fff;
+            color:#081730;
+            min-width:180px;
+            border-radius:8px;
+            box-shadow:0 8px 30px rgba(4,12,30,0.12);
+            overflow:hidden;
+            z-index:40;
+        }
+
+        .dropdown-content a {
+            display:block;
+            padding:0.6rem 0.85rem;
+            font-size:0.93rem;
+            color:#081730;
+            border-bottom:1px solid rgba(6,12,20,0.04);
+        }
+
+        .dropdown-content a:last-child { border-bottom: none; }
+        .dropdown:hover .dropdown-content { display:block; }
+
+        .header-right { display:flex; align-items:center; gap:0.6rem; }
+
+        #loginBtn {
+            background: linear-gradient(180deg,#ffd166,#ffb703);
+            color:#081730;
+            border:none;
+            border-radius:8px;
+            padding:.45rem .75rem;
+            font-weight:600;
+            cursor:pointer;
+            box-shadow:0 6px 18px rgba(255,160,40,0.15);
+            transition: transform .12s ease, box-shadow .12s;
+        }
+        #loginBtn:hover { transform: translateY(-1px); box-shadow:0 10px 24px rgba(255,160,40,0.18); }
+
+        /* Contact container */
+        .contact-container {
+            max-width: 820px;
+            background: linear-gradient(180deg,#ffffff,#fbfdff);
+            margin: 2.2rem auto;
+            padding: 2rem;
+            border-radius: 14px;
+            box-shadow: 0 10px 40px rgba(12,24,40,0.06);
+            border: 1px solid rgba(6,12,20,0.04);
+        }
+
+        .contact-container h2 {
+            margin-top: 0;
+            text-align: left;
+            color: #081730;
+            font-size:1.4rem;
+            display:flex;
+            align-items:center;
+            gap:0.6rem;
+        }
+
+        .contact-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .contact-form > div { display:flex; flex-direction:column; gap:0.45rem; }
+
+        .contact-form label { font-size:0.88rem; color:#263444; font-weight:600; }
+
+        .contact-form input,
+        .contact-form textarea {
+            padding: 0.7rem;
+            border: 1px solid rgba(6,12,20,0.06);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            width: 100%;
+            background: #fbfdff;
+            transition: box-shadow .12s, border-color .12s;
+        }
+
+        .contact-form input:focus,
+        .contact-form textarea:focus {
+            outline: none;
+            border-color: #7aa2ff;
+            box-shadow: 0 8px 24px rgba(122,162,255,0.12);
+        }
+
+        .contact-form textarea {
+            grid-column: 1 / -1;
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .contact-actions {
+            grid-column: 1 / -1;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:1rem;
+            margin-top:0.2rem;
+        }
+
+        .contact-form button {
+            padding: 0.75rem 1rem;
+            background: linear-gradient(180deg,#081730,#0b2b55);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform .12s, box-shadow .12s;
+            min-width:160px;
+        }
+
+        .contact-form button:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(2,8,24,0.12); }
+
+        .contact-info {
+            margin-top: 1.6rem;
+            text-align: left;
+            color: #425364;
+            display:flex;
+            flex-direction:column;
+            gap:0.35rem;
+            font-size:0.95rem;
+        }
+
+        .contact-info p { margin: 0; display:flex; gap:0.5rem; align-items:center; }
+
+        /* Small UI details */
+        .muted { color: #697b8a; font-size:0.9rem; }
+
+        /* Snackbar */
+        #snackbar {
+            position: fixed;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            bottom: 28px;
+            background: #081730;
+            color: #fff;
+            padding: 0.6rem 1rem;
+            border-radius: 10px;
+            box-shadow: 0 12px 36px rgba(4,8,24,0.28);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .25s, transform .25s;
+            z-index: 120;
+        }
+        #snackbar.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events:auto; }
+
+        /* Footer */
+        footer {
+            text-align:center;
+            color:#779;
+            padding:1rem 1rem 2rem;
+            font-size:0.92rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .contact-form { grid-template-columns: 1fr; }
+            .contact-form textarea { min-height: 140px; }
+            #search-bar { max-width:280px; }
+            nav.desktop { display:none; }
+            .hamburger { display:block; }
+        }
+
+        /* Mobile tweaks */
+        .hamburger {
+            display:none;
+            width:40px;
+            height:40px;
+            border-radius:8px;
+            background: rgba(255,255,255,0.06);
+            border:none;
+            color:#fff;
+            cursor:pointer;
+            align-items:center;
+            justify-content:center;
+        }
+
+        .mobile-nav {
+            display:none;
+            position:fixed;
+            right:16px;
+            top:64px;
+            background:#fff;
+            color:#081730;
+            border-radius:10px;
+            box-shadow:0 18px 50px rgba(6,12,30,0.14);
+            min-width:200px;
+            overflow:hidden;
+            z-index:80;
+        }
+
+        .mobile-nav a {
+            display:block;
+            padding:0.75rem 1rem;
+            border-bottom: 1px solid rgba(6,12,20,0.04);
+            color: #081730;
+        }
+
+        .mobile-nav a:last-child { border-bottom:none; }
+
+        .mobile-nav.show { display:block; }
+
+        /* tiny screens */
+        @media (max-width: 900px) {
+            .contact-form { 
+                grid-template-columns: 1fr; 
+                gap: 0.9rem; 
+            }
+            .contact-form textarea { min-height: 140px; }
+            #search-bar { max-width: 280px; }
+            nav.desktop { display: none; }
+            .hamburger { display: flex; }
+        }
+        
+        /* ---------- Small tablets / landscape phones (720px - 541px) ---------- */
+        @media (max-width: 720px) {
+            header h1 { font-size: 1rem; }
+            .header-container { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+            .header-right { gap: 0.4rem; }
+            #search-bar { max-width: 100%; }
+            .contact-container { margin: 1.5rem; padding: 1.8rem; border-radius: 12px; }
+            .contact-form button { width: 100%; min-width: auto; }
+        }
+        
+        /* ---------- Large mobiles / portrait phones (540px - 421px) ---------- */
+        @media (max-width: 540px) {
+            .mark { width: 36px; height: 36px; }
+            header h1 { font-size: 0.95rem; }
+            .contact-container { margin: 1rem; padding: 1.5rem; }
+            #search-bar { width: 100%; font-size: 0.9rem; }
+            .contact-form input, .contact-form textarea { font-size: 0.9rem; padding: 0.6rem; }
+        }
+        
+        /* ---------- Small mobiles / tiny devices (420px and below) ---------- */
+        @media (max-width: 420px) {
+            header h1 { font-size: 0.9rem; }
+            .mark { width: 32px; height: 32px; }
+            .contact-container { margin: 0.8rem; padding: 1rem; border-radius: 10px; }
+            .contact-form label { font-size: 0.85rem; }
+            .contact-form input, .contact-form textarea { font-size: 0.88rem; padding: 0.55rem; }
+            #search-bar { font-size: 0.88rem; padding: 0.5rem; }
+            #loginBtn { padding: 0.35rem 0.6rem; font-size: 0.88rem; }
+            .contact-actions { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+        }
+        
+        /* ---------- Extra small devices (under 360px) ---------- */
+        @media (max-width: 360px) {
+            header { padding: 0.5rem 0.75rem; }
+            #search-bar { padding: 0.45rem; font-size: 0.85rem; }
+            .contact-container { padding: 0.8rem; }
+            .contact-form button { padding: 0.6rem; font-size: 0.85rem; }
+            .contact-info p { font-size: 0.88rem; }
+        }
+    </style>
 </head>
 <body>
 
-  <!-- ✅ Simple Header -->
-  <header>
-    <h1 onclick="window.location.href='index.html'">DealsRadar</h1>
-  </header>
+    <header>
+        <div class="logo" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Go to top">
+            <div class="mark" style="background-image:url('favicon.png')" aria-hidden="true"></div>
+            <h1>DealsRadar</h1>
+        </div>
 
-  <!-- 📩 Contact Section -->
-  <div class="contact-container">
-    <h2>Contact Us</h2>
-    <form class="contact-form" id="contact-form">
-      <div>
-        <label for="name">Your Name</label>
-        <input type="text" id="name" required placeholder="Enter your name">
-      </div>
+        <div class="header-container" role="region" aria-label="Main header controls">
+            <input id="search-bar" placeholder="Search deals, brands, stores..." aria-label="Search deals" />
 
-      <div>
-        <label for="email">Email Address</label>
-        <input type="email" id="email" required placeholder="Enter your email">
-      </div>
+            <!-- Desktop Navigation -->
+            <nav class="desktop" aria-label="Main navigation">
+                <a href="./index.html">Home</a>
 
-      <div>
-        <label for="message">Message</label>
-        <textarea id="message" required placeholder="How can we help you?"></textarea>
-      </div>
+                <div class="dropdown">
+                    <a href="#" aria-haspopup="true" aria-expanded="false">Deals ▾</a>
+                    <div class="dropdown-content" aria-hidden="true">
+                        <a href="./index.html">Today's Deals</a>
+                        <a href="./index.html">Local Deals</a>
+                        <a href="./index.html">Online Deals</a>
+                        <a href="./index.html">Used Deals</a>
+                        <a href="./index.html">Bestselling Deals</a>
+                        <a href="./index.html">Local Deals by Store</a>
+                    </div>
+                </div>
 
-      <button type="submit">Send Message</button>
-    </form>
+                <div class="dropdown">
+                    <a href="#categories" aria-haspopup="true" aria-expanded="false">Categories ▾</a>
+                    <div class="dropdown-content" aria-hidden="true">
+                        <a href="./index.html">Health & Beauty</a>
+                        <a href="./index.html">Electronics</a>
+                        <a href="./index.html">Tools</a>
+                        <a href="./index.html">Appliances</a>
+                    </div>
+                </div>
 
-    <div class="contact-info">
-      <p>📧 support@dealsradar.com</p>
-      <p>📞 +91 0000000000</p>
-      <p>🏢 RoadNo 01, KPHB COLONY,HYD.</p>
+                <a href="#">Store</a>
+                <a href="./contact.html">Help</a>
+            </nav>
+
+            <div class="header-right">
+                <button id="loginBtn" onclick="openLogin()" aria-label="Open login">Login</button>
+                <button class="hamburger" id="hamburger" aria-label="Open menu">☰</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile nav (toggled) -->
+    <div id="mobileNav" class="mobile-nav" role="menu" aria-hidden="true">
+        <a href="./index.html">Home</a>
+        <a href="#">Today's Deals</a>
+        <a href="#categories">Categories</a>
+        <a href="#">Store</a>
+        <a href="./contact.html">Help</a>
     </div>
-  </div>
 
-  
-  <script>
+    <!-- 📩 Contact Section -->
+    <main>
+        <div class="contact-container" role="main" aria-labelledby="contactHeading">
+            <h2 id="contactHeading">📩 Contact Us</h2>
+
+            <form class="contact-form" id="contact-form" novalidate>
+                <div>
+                    <label for="name">Your Name</label>
+                    <input type="text" id="name" required placeholder="Enter your name" autocomplete="name">
+                </div>
+
+                <div>
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" required placeholder="Enter your email" autocomplete="email">
+                </div>
+
+                <div>
+                    <label for="subject">Subject <span class="muted">(optional)</span></label>
+                    <input type="text" id="subject" placeholder="Brief subject (e.g., Order issue)">
+                </div>
+
+                <div style="display:none;">
+                    <!-- honeypot for bots -->
+                    <label>Leave empty</label>
+                    <input type="text" id="hp" name="hp" autocomplete="off" tabindex="-1">
+                </div>
+
+                <div style="grid-column:1/-1">
+                    <label for="message">Message</label>
+                    <textarea id="message" required placeholder="How can we help you?"></textarea>
+                </div>
+
+                <div class="contact-actions">
+                    <div class="muted">We'll reply within 1-2 business days.</div>
+                    <button type="submit">Send Message</button>
+                </div>
+            </form>
+
+            <div class="contact-info" aria-label="Contact information">
+                <p>📧 <a href="mailto:support@dealsradar.com">support@dealsradar.com</a></p>
+                <p>📞 <a href="tel:+910000000000">+91 0000000000</a></p>
+                <p>🏢 RoadNo 01, KPHB COLONY, HYD.</p>
+            </div>
+        </div>
+    </main>
+
+    <div id="snackbar" role="status" aria-live="polite"></div>
+
+    <footer>
+        © <span id="year"></span> DealsRadar — Find the best deals near you.
+    </footer>
+
+<script>
+    // Basic login modal placeholder
+    function openLogin(){
+        alert('Login modal placeholder (implement auth flow).');
+    }
+
+    // Mobile nav toggle
+    const hamburger = document.getElementById('hamburger');
+    const mobileNav = document.getElementById('mobileNav');
+    hamburger.addEventListener('click', () => {
+        mobileNav.classList.toggle('show');
+        const shown = mobileNav.classList.contains('show');
+        mobileNav.setAttribute('aria-hidden', shown ? 'false' : 'true');
+    });
+
+    // Contact form persistence & submission with snackbar (kept from original)
     const nameInput = document.getElementById('name');
     const emailInput = document.getElementById('email');
     const messageInput = document.getElementById('message');
+    const subjectInput = document.getElementById('subject');
+    const hpInput = document.getElementById('hp');
     const form = document.getElementById('contact-form');
-  
-    const STORAGE_KEY = 'contactFormData';
-  
-    // ✅ Load saved data & username on page load
+
+    const STORAGE_KEY = 'contactFormData_v2';
+
     window.addEventListener('DOMContentLoaded', () => {
-      // Load saved form data
-      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-      if (saved) {
-        nameInput.value = saved.name || '';
-        emailInput.value = saved.email || '';
-        messageInput.value = saved.message || '';
-      }
-  
-      // 👤 Load username from main page storage
-      const username = localStorage.getItem('loggedInUser');
-      if (username && !nameInput.value) {
-        nameInput.value = username;
-        saveFormData(); // keep synced
-      }
+        // Set year in footer
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        // Load saved form data
+        try {
+            const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            if (saved) {
+                nameInput.value = saved.name || '';
+                emailInput.value = saved.email || '';
+                messageInput.value = saved.message || '';
+                subjectInput.value = saved.subject || '';
+            }
+        } catch(e) { /* ignore parse errors */ }
+
+        // Load username from main page storage
+        const username = localStorage.getItem('loggedInUser');
+        if (username && !nameInput.value) {
+            nameInput.value = username;
+            saveFormData();
+        }
     });
-  
-    // 📝 Save form data as user types
+
     function saveFormData() {
-      const data = {
-        name: nameInput.value,
-        email: emailInput.value,
-        message: messageInput.value
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        const data = {
+            name: nameInput.value,
+            email: emailInput.value,
+            subject: subjectInput.value,
+            message: messageInput.value
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     }
-  
-    nameInput.addEventListener('input', saveFormData);
-    emailInput.addEventListener('input', saveFormData);
-    messageInput.addEventListener('input', saveFormData);
-  
-    // 📨 Handle form submission with username display
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-  
-      const username = nameInput.value || 'User';
-      alert(`✅ Your message has been sent, ${username}! We'll get back to you shortly.`);
-  
-      form.reset();
-      localStorage.removeItem(STORAGE_KEY);
+
+    [nameInput, emailInput, messageInput, subjectInput].forEach(el => {
+        el.addEventListener('input', saveFormData);
     });
-  </script>
-  
+
+    // Snackbar helper
+    const snackbar = document.getElementById('snackbar');
+    function showSnackbar(text){
+        snackbar.textContent = text;
+        snackbar.classList.add('show');
+        setTimeout(()=> snackbar.classList.remove('show'), 3500);
+    }
+
+    // Simple form validation and submission
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        // honeypot (spam) check
+        if (hpInput.value) {
+            // silently fail
+            console.warn('Bot submission blocked.');
+            return;
+        }
+
+        if (!nameInput.value.trim() || !messageInput.value.trim() || !emailInput.value.trim()) {
+            showSnackbar('Please complete required fields.');
+            return;
+        }
+
+        // basic email pattern
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailPattern.test(emailInput.value.trim())) {
+            showSnackbar('Please enter a valid email address.');
+            emailInput.focus();
+            return;
+        }
+
+        // Simulate successful send
+        const username = nameInput.value.trim() || 'User';
+        showSnackbar(`✅ Your message has been sent, ${username}! We'll get back to you shortly.`);
+
+        // Clear saved data + form
+        form.reset();
+        localStorage.removeItem(STORAGE_KEY);
+    });
+
+    // Close mobile nav when clicking outside
+    document.addEventListener('click', (ev) => {
+        const target = ev.target;
+        if (!mobileNav.contains(target) && !hamburger.contains(target)) {
+            mobileNav.classList.remove('show');
+            mobileNav.setAttribute('aria-hidden','true');
+        }
+    });
+</script>
 
 </body>
 </html>

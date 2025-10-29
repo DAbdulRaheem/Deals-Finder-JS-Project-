@@ -1475,6 +1475,78 @@
       message.textContent = "Invalid email or password!";
     }
   }
+    function signup() {
+      const name = document.getElementById("signupName").value.trim();
+      const email = document.getElementById("signupEmail").value.trim();
+      const password = document.getElementById("signupPassword").value;
+      const confirmPassword = document.getElementById("confirmPassword").value;
+      const message = document.getElementById("signupMessage");
+    
+      if (!name || !email || !password || !confirmPassword) {
+        message.textContent = "Please fill all fields.";
+        message.style.color = "red";
+        return;
+      }
+    
+      if (password !== confirmPassword) {
+        message.textContent = "Passwords do not match.";
+        message.style.color = "red";
+        return;
+      }
+    
+      // Retrieve existing users from localStorage
+      let users = JSON.parse(localStorage.getItem("users")) || [];
+    
+      // Check if email already exists
+      if (users.some(user => user.email === email)) {
+        message.textContent = "Email already registered.";
+        message.style.color = "red";
+        return;
+      }
+    
+      // Add new user
+      users.push({ name, email, password });
+      localStorage.setItem("users", JSON.stringify(users));
+    
+      message.textContent = "Signup successful! You can now login.";
+      message.style.color = "green";
+    
+      // Clear fields
+      document.getElementById("signupName").value = "";
+      document.getElementById("signupEmail").value = "";
+      document.getElementById("signupPassword").value = "";
+      document.getElementById("confirmPassword").value = "";
+    }
+    
+    function login() {
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPassword").value;
+      const message = document.getElementById("loginMessage");
+    
+      let users = JSON.parse(localStorage.getItem("users")) || [];
+    
+      const user = users.find(u => u.email === email && u.password === password);
+    
+      if (user) {
+        message.textContent = `Welcome, ${user.name}!`;
+        message.style.color = "green";
+        localStorage.setItem("currentUser", JSON.stringify(user)); // store logged in user
+      } else {
+        message.textContent = "Invalid email or password.";
+        message.style.color = "red";
+      }
+    }
+    
+    // Optional: auto-login check
+    window.onload = () => {
+      const loggedUser = JSON.parse(localStorage.getItem("currentUser"));
+      if (loggedUser) {
+        document.getElementById("loginBtn").textContent = loggedUser.name;
+      }
+    };
+
+
+    
 
   /* ----------------- Cart Logic with Local Storage ----------------- */
 
@@ -1556,11 +1628,26 @@ function renderCart() {
  * Finds the item in the `featuredDeals` or `categories` data structures.
  * @param {string} id - The unique ID of the product to add.
  */
+ /**
+ * Adds an item to the cart only if the user is logged in.
+ * Finds the item in the `featuredDeals` or `categories` data structures.
+ * @param {string} id - The unique ID of the product to add.
+ */
 function addToCart(id) {
-  // 1. Search in featuredDeals
+  // ✅ Step 1: Check login status before proceeding
+  const isLoggedIn = localStorage.getItem("isLoggedIn");
+
+  if (!isLoggedIn) {
+    alert("Please log in to add items to your cart.");
+    // Optionally redirect to login page
+    // window.location.href = "login.html";
+    return;
+  }
+
+  // 🔍 Step 2: Search in featuredDeals
   let item = featuredDeals.find(deal => deal.id === id);
 
-  // 2. Search in categories
+  // 🔍 Step 3: Search in categories if not found
   if (!item) {
     for (const category of categories) {
       item = category.items.find(product => product.id === id);
@@ -1568,6 +1655,7 @@ function addToCart(id) {
     }
   }
 
+  // 🛒 Step 4: Add to cart if found
   if (item) {
     const cartItem = {
       id: item.id,
@@ -1579,9 +1667,9 @@ function addToCart(id) {
     cart.push(cartItem);
     console.log(`Added ${item.title} to cart.`);
     renderCart();
-    saveCart(); // ✅ Save cart after adding
+    saveCart();
 
-    // Automatically open cart when an item is added
+    // 🧾 Automatically open cart when an item is added
     const cartEl = document.getElementById('cart');
     if (!cartEl.classList.contains('active')) {
       cartEl.classList.add('active');
@@ -1590,6 +1678,7 @@ function addToCart(id) {
     console.error(`Item with ID ${id} not found.`);
   }
 }
+
 
 /**
  * Removes an item from the cart.
@@ -1769,6 +1858,7 @@ document.querySelectorAll(".mobile-drop-btn").forEach(btn => {
     btn.classList.toggle("active"); // rotate arrow
   });
 });
+
 
   
 </script>

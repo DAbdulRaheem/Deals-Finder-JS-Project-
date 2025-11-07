@@ -1275,7 +1275,32 @@
 </div>
 
 
-<script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
+    import { 
+      getAuth, 
+      createUserWithEmailAndPassword, 
+      signInWithEmailAndPassword, 
+      signOut, 
+      updateProfile,
+      onAuthStateChanged 
+    } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
+  
+    // ✅ Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyAZ44erphU3tMWS8-U2QbPmMDr94L3KDKg",
+      authDomain: "deals-finder-ac722.firebaseapp.com",
+      projectId: "deals-finder-ac722",
+      storageBucket: "deals-finder-ac722.appspot.com",
+      messagingSenderId: "349183063287",
+      appId: "1:349183063287:web:3859b45a16724490218ff2",
+      measurementId: "G-9T5XLTR0TV"
+    };
+  
+    // ✅ Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    console.log("✅ Firebase initialized");
   const menuToggle = document.getElementById("menu-toggle");
   const mobileNav = document.getElementById("mobile-nav");
 
@@ -1405,356 +1430,255 @@
   ]}
   ];
   /* ----------------- Cart Logic with Local Storage ----------------- */
+  let cart = [];
 
-// In-memory cart array (will be synced with localStorage)
-let cart = [];
-
-/**
- * Loads the cart from localStorage when the page is loaded.
- */
-function loadCart() {
-  const savedCart = localStorage.getItem('cartData');
-  if (savedCart) {
-    try {
-      cart = JSON.parse(savedCart);
-      console.log('Cart loaded from localStorage:', cart);
-    } catch (e) {
-      console.error('Error parsing cart data:', e);
-      cart = [];
+  function loadCart() {
+    const savedCart = localStorage.getItem("cartData");
+    if (savedCart) {
+      try {
+        cart = JSON.parse(savedCart);
+        console.log("Cart loaded:", cart);
+      } catch (e) {
+        console.error("Cart parse error:", e);
+        cart = [];
+      }
     }
-  }
-  renderCart();
-}
-
-/**
- * Saves the current cart to localStorage.
- */
-function saveCart() {
-  localStorage.setItem('cartData', JSON.stringify(cart));
-}
-
-/**
- * Toggles the visibility of the cart panel.
- */
-function toggleCart() {
-  document.getElementById('cart').classList.toggle('active');
-}
-
-/**
- * Renders the current state of the cart to the UI,
- * including the list of items and the total price.
- */
-function renderCart() {
-  const cartItemsEl = document.getElementById('cartItems');
-  const cartTotalEl = document.getElementById('cartTotal');
-  let total = 0;
-
-  // Clear the current list
-  cartItemsEl.innerHTML = '';
-
-  if (cart.length === 0) {
-    cartItemsEl.innerHTML = '<li style="justify-content:center;color:#666">Your cart is empty.</li>';
-    cartTotalEl.textContent = '0.00';
-    document.getElementById('cartBtn').textContent = '🛒';
-    return;
+    renderCart();
   }
 
-  // Generate HTML for each item and calculate total
-  cart.forEach(item => {
-    const li = document.createElement('li');
-    li.innerHTML = `
-      <img src="${item.img}" alt="${item.title}" />
-      <div style="flex-grow:1;display:flex;flex-direction:column;gap:2px">
-        <div style="font-weight:600;font-size:14px">${item.title}</div>
-        <div style="font-size:13px;color:#0d47a1">$${item.price.toFixed(2)}</div>
-      </div>
-      <button class="remove" onclick="removeFromCart('${item.id}')">Remove</button>
-    `;
-    cartItemsEl.appendChild(li);
-    total += item.price;
-  });
-
-  // Update total price and cart button icon
-  cartTotalEl.textContent = total.toFixed(2);
-  document.getElementById('cartBtn').textContent = `🛒 (${cart.length})`;
-}
-
-/**
- * Adds an item to the cart.
- * Finds the item in the `featuredDeals` or `categories` data structures.
- * @param {string} id - The unique ID of the product to add.
- */
- /**
- * Adds an item to the cart only if the user is logged in.
- * Finds the item in the `featuredDeals` or `categories` data structures.
- * @param {string} id - The unique ID of the product to add.
- */
-function addToCart(id) {
-  // ✅ Step 1: Check login status before proceeding
-  const isLoggedIn = localStorage.getItem("isLoggedIn");
-
-  if (!isLoggedIn) {
-    alert("Please log in to add items to your cart.");
-    // Optionally redirect to login page
-    // window.location.href = "login.html";
-    return;
+  function saveCart() {
+    localStorage.setItem("cartData", JSON.stringify(cart));
   }
 
-  // 🔍 Step 2: Search in featuredDeals
-  let item = featuredDeals.find(deal => deal.id === id);
+  window.toggleCart = function () {
+    const cartEl = document.getElementById("cart");
+    if (!cartEl) return console.warn("#cart element not found");
+    cartEl.classList.toggle("active");
+  };
+  
 
-  // 🔍 Step 3: Search in categories if not found
-  if (!item) {
-    for (const category of categories) {
-      item = category.items.find(product => product.id === id);
-      if (item) break;
+  function renderCart() {
+    const cartItemsEl = document.getElementById("cartItems");
+    const cartTotalEl = document.getElementById("cartTotal");
+    let total = 0;
+
+    cartItemsEl.innerHTML = "";
+
+    if (cart.length === 0) {
+      cartItemsEl.innerHTML =
+        '<li style="justify-content:center;color:#666">Your cart is empty.</li>';
+      cartTotalEl.textContent = "0.00";
+      document.getElementById("cartBtn").textContent = "🛒";
+      return;
     }
+
+    cart.forEach((item) => {
+      const li = document.createElement("li");
+      li.innerHTML = `
+        <img src="${item.img}" alt="${item.title}" />
+        <div style="flex-grow:1;display:flex;flex-direction:column;gap:2px">
+          <div style="font-weight:600;font-size:14px">${item.title}</div>
+          <div style="font-size:13px;color:#0d47a1">$${item.price.toFixed(2)}</div>
+        </div>
+        <button class="remove" onclick="removeFromCart('${item.id}')">Remove</button>
+      `;
+      cartItemsEl.appendChild(li);
+      total += item.price;
+    });
+
+    cartTotalEl.textContent = total.toFixed(2);
+    document.getElementById("cartBtn").textContent = `🛒 (${cart.length})`;
   }
 
-  // 🛒 Step 4: Add to cart if found
-  if (item) {
-    const cartItem = {
-      id: item.id,
-      title: item.title,
-      img: item.img,
-      price: parseFloat(item.price)
-    };
+  window.addToCart = function (id) {
+    const isLoggedIn = localStorage.getItem("isLoggedIn");
 
-    cart.push(cartItem);
-    console.log(`Added ${item.title} to cart.`);
+    if (!isLoggedIn) {
+      alert("Please log in to add items to your cart.");
+      return;
+    }
+
+    let item =
+      featuredDeals.find((deal) => deal.id === id) ||
+      categories.flatMap((c) => c.items).find((p) => p.id === id);
+
+    if (item) {
+      const cartItem = {
+        id: item.id,
+        title: item.title,
+        img: item.img,
+        price: parseFloat(item.price),
+      };
+
+      cart.push(cartItem);
+      renderCart();
+      saveCart();
+
+      const cartEl = document.getElementById("cart");
+      if (!cartEl.classList.contains("active")) {
+        cartEl.classList.add("active");
+      }
+    } else {
+      console.error(`Item with ID ${id} not found.`);
+    }
+  };
+
+  window.removeFromCart = function (id) {
+    const index = cart.findIndex((item) => item.id === id);
+    if (index > -1) {
+      const removedItem = cart[index];
+      cart.splice(index, 1);
+      console.log(`Removed ${removedItem.title} from cart.`);
+      renderCart();
+      saveCart();
+    }
+  };
+
+  window.checkout = function () {
+    if (cart.length === 0) {
+      alert("Your cart is empty. Nothing to checkout!");
+      return;
+    }
+
+    const total = document.getElementById("cartTotal").textContent;
+    alert(`Checkout successful! Total: $${total}. Thank you!`);
+
+    cart = [];
     renderCart();
     saveCart();
+    document.getElementById("cart").classList.remove("active");
+  };
 
-    // 🧾 Automatically open cart when an item is added
-    const cartEl = document.getElementById('cart');
-    if (!cartEl.classList.contains('active')) {
-      cartEl.classList.add('active');
-    }
-  } else {
-    console.error(`Item with ID ${id} not found.`);
-  }
-}
-
-
-/**
- * Removes an item from the cart.
- * Finds the first instance of the item with the given ID and removes it.
- * @param {string} id - The unique ID of the product to remove.
- */
-function removeFromCart(id) {
-  const index = cart.findIndex(item => item.id === id);
-
-  if (index > -1) {
-    const removedItem = cart[index];
-    cart.splice(index, 1);
-    console.log(`Removed ${removedItem.title} from cart.`);
-    renderCart();
-    saveCart(); // ✅ Save cart after removing
-  } else {
-    console.warn(`Item with ID ${id} not found in cart.`);
-  }
-}
-
-/**
- * Simulates the checkout process.
- * Clears the cart and provides a user notification.
- */
-function checkout() {
-  if (cart.length === 0) {
-    alert('Your cart is empty. Nothing to checkout!');
-    return;
-  }
-
-  const total = document.getElementById('cartTotal').textContent;
-
-  alert(`Checkout successful! Total amount: $${total}. Thank you for your purchase!`);
-
-  cart = [];
-  renderCart();
-  saveCart(); // ✅ Clear from localStorage too
-  document.getElementById('cart').classList.remove('active');
-}
-
-/**
- * Initialize cart when the page loads.
- */
-document.addEventListener('DOMContentLoaded', loadCart);
+  document.addEventListener("DOMContentLoaded", loadCart);
 
   /* ----------------- UI Helpers ----------------- */
+  window.openLogin = function () {
+    document.getElementById("loginModal").classList.add("active");
+  };
 
-  function openLogin() {
-    document.getElementById('loginModal').classList.add('active');
-  }
+  window.switchForm = function (form) {
+    document.getElementById("loginForm").style.display =
+      form === "login" ? "block" : "none";
+    document.getElementById("signupForm").style.display =
+      form === "signup" ? "block" : "none";
+    document.getElementById("tabLogin").style.background =
+      form === "login" ? "#0d47a1" : "transparent";
+    document.getElementById("tabLogin").style.color =
+      form === "login" ? "#fff" : "#081730";
+    document.getElementById("tabSignup").style.background =
+      form === "signup" ? "#0d47a1" : "transparent";
+    document.getElementById("tabSignup").style.color =
+      form === "signup" ? "#fff" : "#081730";
+  };
 
-  function switchForm(form) {
-    document.getElementById('loginForm').style.display = form === 'login' ? 'block' : 'none';
-    document.getElementById('signupForm').style.display = form === 'signup' ? 'block' : 'none';
-    document.getElementById('tabLogin').style.background = form === 'login' ? '#0d47a1' : 'transparent';
-    document.getElementById('tabLogin').style.color = form === 'login' ? '#fff' : '#081730';
-    document.getElementById('tabSignup').style.background = form === 'signup' ? '#0d47a1' : 'transparent';
-    document.getElementById('tabSignup').style.color = form === 'signup' ? '#fff' : '#081730';
-  }
-
-  // Close modal when clicking outside
-  document.getElementById('loginModal').addEventListener('click', (e) => {
-    if (e.target.id === 'loginModal') {
-      e.target.classList.remove('active');
-    }
+  document.getElementById("loginModal").addEventListener("click", (e) => {
+    if (e.target.id === "loginModal") e.target.classList.remove("active");
   });
 
-
-  /* ----------------- Content Rendering ----------------- */
-
-  // Featured deals rendering
-  function renderFeaturedDeals() {
-    const track = document.getElementById('featuredTrack');
-    track.innerHTML = featuredDeals.map(item => `
-      <div class="card">
-        <img src="${item.img}" alt="${item.title}" />
-        <div style="font-weight:700;margin-top:8px;font-size:16px">${item.title}</div>
-        <div class="meta">
-          <div>
-            <span class="price">$${item.price.toFixed(2)}</span>
-            <span class="strike">$${item.was.toFixed(2)}</span>
+  /* ----------------- Rendering Content ----------------- */
+  window.renderFeaturedDeals = function () {
+    const track = document.getElementById("featuredTrack");
+    track.innerHTML = featuredDeals
+      .map(
+        (item) => `
+        <div class="card">
+          <img src="${item.img}" alt="${item.title}" />
+          <div style="font-weight:700;margin-top:8px;font-size:16px">${item.title}</div>
+          <div class="meta">
+            <div>
+              <span class="price">$${item.price.toFixed(2)}</span>
+              <span class="strike">$${item.was.toFixed(2)}</span>
+            </div>
+            <div class="badge">${item.off}</div>
           </div>
-          <div class="badge">${item.off}</div>
+          <div style="font-size:12px;color:#555;margin-top:6px">@${item.store}</div>
+          <button class="btn-primary" style="margin-top:10px;width:100%" onclick="addToCart('${item.id}')">Add to Cart</button>
         </div>
-        <div style="font-size:12px;color:#555;margin-top:6px">@${item.store}</div>
-        <button class="btn-primary" style="margin-top:10px;width:100%" onclick="addToCart('${item.id}')">Add to Cart</button>
-      </div>
-    `).join('');
-  }
-  
-  // Category rendering
-  function renderCategories() {
-    const container = document.getElementById('categoriesContainer');
-    container.innerHTML = categories.map((category, index) => `
-      <section class="section" id="section-${index}">
-        <h3>${category.key} Deals</h3>
-        <div class="h-carousel">
-          <button class="h-arrow left" onclick="scrollCategory('${category.key}', -1)">◀</button>
-          <div class="h-track" id="h-track-${category.key}">
-            ${category.items.map(item => `
-              <div class="product-card">
-                <img src="${item.img}" alt="${item.title}" />
-                <div class="p-title">${item.title}</div>
-                <div class="p-sub">@${item.store}</div>
-                <div class="p-price">$${item.price.toFixed(2)}<span class="p-off">${item.off}% OFF</span></div>
-                <div class="product-actions">
-                  <button class="btn-ghost">View</button>
-                  <button class="btn-primary" onclick="addToCart('${item.id}')">Add to Cart</button>
+      `
+      )
+      .join("");
+  };
+
+  window.renderCategories = function () {
+    const container = document.getElementById("categoriesContainer");
+    container.innerHTML = categories
+      .map(
+        (category, index) => `
+        <section class="section" id="section-${index}">
+          <h3>${category.key} Deals</h3>
+          <div class="h-carousel">
+            <button class="h-arrow left" onclick="scrollCategory('${category.key}', -1)">◀</button>
+            <div class="h-track" id="h-track-${category.key}">
+              ${category.items
+                .map(
+                  (item) => `
+                <div class="product-card">
+                  <img src="${item.img}" alt="${item.title}" />
+                  <div class="p-title">${item.title}</div>
+                  <div class="p-sub">@${item.store}</div>
+                  <div class="p-price">$${item.price.toFixed(2)}<span class="p-off">${item.off}% OFF</span></div>
+                  <div class="product-actions">
+                    <button class="btn-ghost">View</button>
+                    <button class="btn-primary" onclick="addToCart('${item.id}')">Add to Cart</button>
+                  </div>
                 </div>
-              </div>
-            `).join('')}
+              `
+                )
+                .join("")}
+            </div>
+            <button class="h-arrow right" onclick="scrollCategory('${category.key}', 1)">▶</button>
           </div>
-          <button class="h-arrow right" onclick="scrollCategory('${category.key}', 1)">▶</button>
-        </div>
-      </section>
-    `).join('');
-  }
-  
-  /* ----------------- Chips (Daily Deals Categories) ----------------- */
-  function renderChips() {
-    const chipsRow = document.getElementById('chipsRow');
-    chipsRow.innerHTML = categories.map((c, idx) => `
-      <div class="chip" id="chip-${idx}" onclick="scrollToCategory(${idx})">${c.key}</div>
-    `).join('');
+        </section>
+      `
+      )
+      .join("");
+  };
+
+  window.renderChips = function () {
+    const chipsRow = document.getElementById("chipsRow");
+    chipsRow.innerHTML = categories
+      .map(
+        (c, idx) =>
+          `<div class="chip" id="chip-${idx}" onclick="scrollToCategory(${idx})">${c.key}</div>`
+      )
+      .join("");
     setActiveChip(0);
-  }
-  
-  function setActiveChip(i) {
-    document.querySelectorAll('.chip').forEach((el, idx) =>
-      el.classList.toggle('active', idx === i)
-    );
-  }
-  
-  /* ----------------- Scroll to Category ----------------- */
-  function scrollToCategory(index) {
+  };
+
+  window.setActiveChip = function (i) {
+    document
+      .querySelectorAll(".chip")
+      .forEach((el, idx) => el.classList.toggle("active", idx === i));
+  };
+
+  window.scrollToCategory = function (index) {
     const section = document.getElementById(`section-${index}`);
     if (section) {
-      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      section.scrollIntoView({ behavior: "smooth", block: "start" });
       setActiveChip(index);
     }
-  }
-  
-  /* ----------------- Carousel Scrolling Logic ----------------- */
-  function featuredScroll(direction) {
-    const track = document.getElementById('featuredTrack');
-    const carousel = document.getElementById('featuredCarousel');
-    const cardWidth = track.children[0].offsetWidth + 12; 
-    carousel.scrollBy({ left: direction * cardWidth, behavior: 'smooth' });
-  }
-  
-  function scrollCategory(key, direction) {
+  };
+
+  window.featuredScroll = function (dir) {
+    const track = document.getElementById("featuredTrack");
+    const carousel = document.getElementById("featuredCarousel");
+    const cardWidth = track.children[0].offsetWidth + 12;
+    carousel.scrollBy({ left: dir * cardWidth, behavior: "smooth" });
+  };
+
+  window.scrollCategory = function (key, dir) {
     const track = document.getElementById(`h-track-${key}`);
-    const cardWidth = track.children[0].offsetWidth + 12; 
-    track.scrollBy({ left: direction * cardWidth, behavior: 'smooth' });
-  }
-  
-  /* ----------------- Initialization ----------------- */
+    const cardWidth = track.children[0].offsetWidth + 12;
+    track.scrollBy({ left: dir * cardWidth, behavior: "smooth" });
+  };
+
   renderFeaturedDeals();
   renderCategories();
   renderChips();
-  renderCart(); // Initial empty cart
+  renderCart();
 
-
-  // Toggle mobile menu
-const hamburger = document.querySelector(".hamburger");
-
-hamburger.addEventListener("click", () => {
-  mobileNav.classList.toggle("active");
-  hamburger.classList.toggle("open");
-});
-
-// Toggle mobile dropdowns
-document.querySelectorAll(".mobile-drop-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const content = btn.nextElementSibling;
-    content.classList.toggle("active");
-    btn.classList.toggle("active"); // rotate arrow
-  });
-}); 
-</script>
-<!-- firebase -->
-
-<!-- <script type="module" src="firebase-app.js"></script> -->
-
-<!-- ❌ Do NOT include this anymore -->
-<!-- <script type="module" src="firebase-app.js"></script> -->
-
-<!-- ✅ Only keep this -->
-<!-- ✅ Firebase Auth Integration (with your same IDs) -->
- 
-<!-- ✅ Firebase Auth Integration (with your same IDs) -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
-  import { 
-    getAuth, 
-    createUserWithEmailAndPassword, 
-    signInWithEmailAndPassword, 
-    signOut, 
-    updateProfile,
-    onAuthStateChanged 
-  } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
-
-  // ✅ Firebase Config
-  const firebaseConfig = {
-    apiKey: "AIzaSyAZ44erphU3tMWS8-U2QbPmMDr94L3KDKg",
-    authDomain: "deals-finder-ac722.firebaseapp.com",
-    projectId: "deals-finder-ac722",
-    storageBucket: "deals-finder-ac722.appspot.com",
-    messagingSenderId: "349183063287",
-    appId: "1:349183063287:web:3859b45a16724490218ff2",
-    measurementId: "G-9T5XLTR0TV"
-  };
-
-  // ✅ Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  console.log("✅ Firebase initialized");
-
-  // 🔹 Signup
-  window.signup = async function() {
+  /* ----------------- Auth: Signup / Login / Logout ----------------- */
+  window.signup = async function () {
     const name = document.getElementById("signupName").value;
     const email = document.getElementById("signupEmail").value;
     const password = document.getElementById("signupPassword").value;
@@ -1767,7 +1691,11 @@ document.querySelectorAll(".mobile-drop-btn").forEach(btn => {
     }
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       await updateProfile(userCredential.user, { displayName: name });
       msg.textContent = `✅ Account created for ${name}`;
     } catch (err) {
@@ -1775,8 +1703,7 @@ document.querySelectorAll(".mobile-drop-btn").forEach(btn => {
     }
   };
 
-  // 🔹 Login
-  window.login = async function() {
+  window.login = async function () {
     const email = document.getElementById("loginEmail").value;
     const password = document.getElementById("loginPassword").value;
     const msg = document.getElementById("loginMessage");
@@ -1789,110 +1716,51 @@ document.querySelectorAll(".mobile-drop-btn").forEach(btn => {
     }
   };
 
-  // 🔹 Logout
-  window.logout = async function logout() {
+  window.logout = async function () {
     try {
-      await signOut(auth); // sign out from Firebase
-      console.log("✅ signOut successful");
-  
-      // Clear any global user reference your app uses
-      window.currentUser = null;
-  
-      // Clear UI messages
-      const loginMsg = document.getElementById("loginMessage");
-      const signupMsg = document.getElementById("signupMessage");
-      if (loginMsg) { loginMsg.textContent = ""; loginMsg.style.color = ""; }
-      if (signupMsg) { signupMsg.textContent = ""; signupMsg.style.color = ""; }
-  
-      // Reset login button text if you use one
-      const loginBtn = document.getElementById("loginBtn");
-      if (loginBtn) loginBtn.textContent = "Login";
-  
-      // If you show the user name next to the login button, clear it
-      const loginUserDisplay = document.getElementById("loginUserDisplay");
-      if (loginUserDisplay) loginUserDisplay.textContent = "";
-  
-      // Hide userDetails and show login form
-      const userDetails = document.getElementById("userDetails");
-      const loginForm = document.getElementById("loginForm");
-      const signupForm = document.getElementById("signupForm");
-      if (userDetails) userDetails.style.display = "none";
-      if (loginForm) loginForm.style.display = "block";
-      if (signupForm) signupForm.style.display = "none";
-      
-      const loginMessage = document.getElementById("loginMessage");
-      if (loginMessage) {
-        const appendedLogout = loginMessage.querySelector('button[data-logout-btn="1"]');
-        if (appendedLogout) appendedLogout.remove();
-      }
-  
+      await signOut(auth);
+      console.log("✅ Logged out");
     } catch (err) {
-      console.error("signOut error:", err);
-      alert("Logout failed: " + (err.message || err.code || "unknown error"));
+      alert("Logout failed: " + err.message);
     }
   };
-  
-  // Better onAuthStateChanged handler (replace previous handler)
+
+  // 🔹 Monitor auth state
   onAuthStateChanged(auth, (user) => {
     const loginForm = document.getElementById("loginForm");
     const signupForm = document.getElementById("signupForm");
     const userDetails = document.getElementById("userDetails");
     const userName = document.getElementById("userName");
-    const loginMsg = document.getElementById("loginMessage");
     const loginBtn = document.getElementById("loginBtn");
+    const loginMsg = document.getElementById("loginMessage");
     const loginUserDisplay = document.getElementById("loginUserDisplay");
-  
+
     if (user) {
-      const displayName = user.displayName || user.email;
-  
-      // store global user for other logic
+      const name = user.displayName || user.email;
+      localStorage.setItem("isLoggedIn", "true");
       window.currentUser = user;
-  
-      // update UI consistently
+
       if (loginForm) loginForm.style.display = "none";
       if (signupForm) signupForm.style.display = "none";
       if (userDetails) userDetails.style.display = "block";
-      if (userName) userName.textContent = displayName;
+      if (userName) userName.textContent = name;
+      if (loginBtn) loginBtn.textContent = name;
+      if (loginUserDisplay) loginUserDisplay.textContent = `(${name})`;
       if (loginMsg) {
-        loginMsg.textContent = `👋 Logged in as ${displayName}`;
+        loginMsg.textContent = `👋 Logged in as ${name}`;
         loginMsg.style.color = "green";
       }
-      if (loginBtn) loginBtn.textContent = displayName;
-      if (loginUserDisplay) loginUserDisplay.textContent = `(${displayName})`;
-  
-      // Ensure there's no duplicate appended logout button in the message area.
-      if (loginMsg) {
-        // If you want a logout button inside loginMessage, append only once and mark it
-        if (!loginMsg.querySelector('button[data-logout-btn="1"]')) {
-          const btn = document.createElement("button");
-          btn.textContent = "Logout";
-          btn.dataset.logoutBtn = "1";
-          btn.style.marginLeft = "8px";
-          btn.onclick = () => logout();
-          loginMsg.appendChild(btn);
-        }
-      }
-  
     } else {
-      // Clear global user
+      localStorage.removeItem("isLoggedIn");
       window.currentUser = null;
-  
-      // Restore forms
+
       if (loginForm) loginForm.style.display = "block";
       if (signupForm) signupForm.style.display = "none";
       if (userDetails) userDetails.style.display = "none";
-  
-      // Clear displayed username
       if (userName) userName.textContent = "";
-      if (loginMsg) loginMsg.textContent = "";
       if (loginBtn) loginBtn.textContent = "Login";
       if (loginUserDisplay) loginUserDisplay.textContent = "";
-  
-      // If you appended a logout button under loginMessage earlier, remove it
-      if (loginMsg) {
-        const appendedLogout = loginMsg.querySelector('button[data-logout-btn="1"]');
-        if (appendedLogout) appendedLogout.remove();
-      }
+      if (loginMsg) loginMsg.textContent = "";
     }
   });
 </script>

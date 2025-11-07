@@ -1399,155 +1399,6 @@
   {id:'a10',title:'Blender',img:'https://m.media-amazon.com/images/I/51mNbQSXHHL._AC_UY436_FMwebp_QL65_.jpg',price:59.99,was:89.99,off:33,store:'KitchenPro'}
   ]}
   ];
-
-  // Switch between Login and Signup
-  function switchForm(form) {
-    const loginForm = document.getElementById("loginForm");
-    const signupForm = document.getElementById("signupForm");
-    const tabLogin = document.getElementById("tabLogin");
-    const tabSignup = document.getElementById("tabSignup");
-
-    if (form === "login") {
-      loginForm.style.display = "block";
-      signupForm.style.display = "none";
-      tabLogin.classList.add("active");
-      tabSignup.classList.remove("active");
-    } else {
-      loginForm.style.display = "none";
-      signupForm.style.display = "block";
-      tabSignup.classList.add("active");
-      tabLogin.classList.remove("active");
-    }
-  }
-
-  // Signup Logic
-  function signup() {
-    const name = document.getElementById("signupName").value.trim();
-    const email = document.getElementById("signupEmail").value.trim();
-    const password = document.getElementById("signupPassword").value;
-    const confirmPassword = document.getElementById("confirmPassword").value;
-    const message = document.getElementById("signupMessage");
-
-    message.textContent = "";
-
-    if (!name || !email || !password || !confirmPassword) {
-      message.textContent = "All fields are required!";
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      message.textContent = "Passwords do not match!";
-      return;
-    }
-
-    // Store user data (demo only)
-    localStorage.setItem("userEmail", email);
-    localStorage.setItem("userPassword", password);
-    localStorage.setItem("userName", name);
-
-    message.style.color = "green";
-    message.textContent = "Signup successful! You can now login.";
-    setTimeout(() => switchForm("login"), 1500);
-  }
-
-  // Login Logic
-  function login() {
-    const email = document.getElementById("loginEmail").value.trim();
-    const password = document.getElementById("loginPassword").value;
-    const message = document.getElementById("loginMessage");
-
-    message.textContent = "";
-
-    const storedEmail = localStorage.getItem("userEmail");
-    const storedPassword = localStorage.getItem("userPassword");
-    const storedName = localStorage.getItem("userName");
-
-    if (!email || !password) {
-      message.textContent = "Please enter both email and password!";
-      return;
-    }
-
-    if (email === storedEmail && password === storedPassword) {
-      message.style.color = "green";
-      message.textContent = `Welcome back, ${storedName}!`;
-      setTimeout(() => alert(`Logged in successfully as ${storedName}`), 600);
-    } else {
-      message.textContent = "Invalid email or password!";
-    }
-  }
-    function signup() {
-      const name = document.getElementById("signupName").value.trim();
-      const email = document.getElementById("signupEmail").value.trim();
-      const password = document.getElementById("signupPassword").value;
-      const confirmPassword = document.getElementById("confirmPassword").value;
-      const message = document.getElementById("signupMessage");
-    
-      if (!name || !email || !password || !confirmPassword) {
-        message.textContent = "Please fill all fields.";
-        message.style.color = "red";
-        return;
-      }
-    
-      if (password !== confirmPassword) {
-        message.textContent = "Passwords do not match.";
-        message.style.color = "red";
-        return;
-      }
-    
-      // Retrieve existing users from localStorage
-      let users = JSON.parse(localStorage.getItem("users")) || [];
-    
-      // Check if email already exists
-      if (users.some(user => user.email === email)) {
-        message.textContent = "Email already registered.";
-        message.style.color = "red";
-        return;
-      }
-    
-      // Add new user
-      users.push({ name, email, password });
-      localStorage.setItem("users", JSON.stringify(users));
-    
-      message.textContent = "Signup successful! You can now login.";
-      message.style.color = "green";
-    
-      // Clear fields
-      document.getElementById("signupName").value = "";
-      document.getElementById("signupEmail").value = "";
-      document.getElementById("signupPassword").value = "";
-      document.getElementById("confirmPassword").value = "";
-    }
-    
-    function login() {
-      const email = document.getElementById("loginEmail").value.trim();
-      const password = document.getElementById("loginPassword").value;
-      const message = document.getElementById("loginMessage");
-    
-      let users = JSON.parse(localStorage.getItem("users")) || [];
-    
-      const user = users.find(u => u.email === email && u.password === password);
-    
-      if (user) {
-        message.textContent = `Welcome, ${user.name}!`;
-        message.style.color = "green";
-        localStorage.setItem("currentUser", JSON.stringify(user)); // store logged in user
-      } else {
-        message.textContent = "Invalid email or password.";
-        message.style.color = "red";
-      }
-    }
-    
-    // Optional: auto-login check
-    window.onload = () => {
-      const loggedUser = JSON.parse(localStorage.getItem("currentUser"));
-      if (loggedUser) {
-        document.getElementById("loginBtn").textContent = loggedUser.name;
-      }
-    };
-
-
-    
-
   /* ----------------- Cart Logic with Local Storage ----------------- */
 
 // In-memory cart array (will be synced with localStorage)
@@ -1857,31 +1708,157 @@ document.querySelectorAll(".mobile-drop-btn").forEach(btn => {
     content.classList.toggle("active");
     btn.classList.toggle("active"); // rotate arrow
   });
-});
-
-
-  
+}); 
 </script>
-<script type="module">
-  // Import the functions you need from the SDK
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.15.0/firebase-app.js";
-  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.15.0/firebase-firestore.js";
+<!-- firebase -->
 
+<!-- <script type="module" src="firebase-app.js"></script> -->
+
+<!-- ❌ Do NOT include this anymore -->
+<!-- <script type="module" src="firebase-app.js"></script> -->
+
+<!-- ✅ Only keep this -->
+<!-- ✅ Firebase Auth Integration (with your same IDs) -->
+ 
+<!-- ✅ Firebase Auth Integration (with your same IDs) -->
+<script type="module">
+  // Import Firebase modules
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
+  import { 
+    getAuth, 
+    createUserWithEmailAndPassword, 
+    signInWithEmailAndPassword, 
+    updateProfile,
+    onAuthStateChanged,
+    signOut
+  } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
+
+  // ✅ Your Firebase Config
   const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "SENDER_ID",
-    appId: "APP_ID"
+    apiKey: "AIzaSyAZ44erphU3tMWS8-U2QbPmMDr94L3KDKg",
+    authDomain: "deals-finder-ac722.firebaseapp.com",
+    projectId: "deals-finder-ac722",
+    storageBucket: "deals-finder-ac722.appspot.com",
+    messagingSenderId: "349183063287",
+    appId: "1:349183063287:web:3859b45a16724490218ff2",
+    measurementId: "G-9T5XLTR0TV"
   };
 
-  // Initialize Firebase
+  // ✅ Initialize Firebase
   const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+  const auth = getAuth(app);
+  console.log("✅ Firebase initialized successfully");
 
+  // 🔹 Switch between Login and Signup Forms
+  window.switchForm = function(form) {
+    const loginForm = document.getElementById("loginForm");
+    const signupForm = document.getElementById("signupForm");
+
+    if (form === "login") {
+      loginForm.style.display = "block";
+      signupForm.style.display = "none";
+    } else {
+      loginForm.style.display = "none";
+      signupForm.style.display = "block";
+    }
+  };
+
+  // 🔹 Signup
+  window.signup = async function() {
+    const name = document.getElementById("signupName").value.trim();
+    const email = document.getElementById("signupEmail").value.trim();
+    const password = document.getElementById("signupPassword").value;
+    const confirm = document.getElementById("confirmPassword").value;
+    const msg = document.getElementById("signupMessage");
+
+    msg.textContent = "";
+
+    if (!name || !email || !password || !confirm) {
+      msg.textContent = "Please fill all fields!";
+      msg.style.color = "red";
+      return;
+    }
+
+    if (password !== confirm) {
+      msg.textContent = "Passwords do not match!";
+      msg.style.color = "red";
+      return;
+    }
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(userCredential.user, { displayName: name });
+      msg.textContent = `✅ Account created for ${name}. You can now log in.`;
+      msg.style.color = "green";
+
+      // Clear fields
+      document.getElementById("signupName").value = "";
+      document.getElementById("signupEmail").value = "";
+      document.getElementById("signupPassword").value = "";
+      document.getElementById("confirmPassword").value = "";
+
+      // Switch to login form
+      setTimeout(() => switchForm("login"), 1500);
+
+    } catch (err) {
+      msg.textContent = `❌ ${err.message}`;
+      msg.style.color = "red";
+    }
+  };
+
+  // 🔹 Login
+  window.login = async function() {
+    const email = document.getElementById("loginEmail").value.trim();
+    const password = document.getElementById("loginPassword").value;
+    const msg = document.getElementById("loginMessage");
+
+    msg.textContent = "";
+
+    if (!email || !password) {
+      msg.textContent = "Please enter both email and password!";
+      msg.style.color = "red";
+      return;
+    }
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      msg.textContent = "✅ Login successful!";
+      msg.style.color = "green";
+    } catch (err) {
+      msg.textContent = `❌ ${err.message}`;
+      msg.style.color = "red";
+    }
+  };
+
+  // 🔹 Auth State Change (auto detect login/logout)
+  onAuthStateChanged(auth, (user) => {
+    const loginForm = document.getElementById("loginForm");
+    const signupForm = document.getElementById("signupForm");
+    const loginMsg = document.getElementById("loginMessage");
+
+    if (user) {
+      // User logged in
+      const name = user.displayName || user.email;
+      loginMsg.textContent = `👋 Logged in as ${name}`;
+      loginMsg.style.color = "green";
+      loginForm.style.display = "none";
+      signupForm.style.display = "none";
+
+      // Optional: show a logout button
+      const logoutBtn = document.createElement("button");
+      logoutBtn.textContent = "Logout";
+      logoutBtn.style.marginTop = "10px";
+      logoutBtn.onclick = () => signOut(auth);
+      loginMsg.appendChild(logoutBtn);
+    } else {
+      // User logged out
+      loginForm.style.display = "block";
+      signupForm.style.display = "none";
+      loginMsg.textContent = "";
+    }
+  });
 </script>
 
-<script src="./script.js"></script>
+<!-- <script src="./script.js"></script> -->
 
 </html>

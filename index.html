@@ -1161,6 +1161,11 @@
       <button onclick="signup()">Create</button>
       <p id="signupMessage" class="message"></p>
     </div>
+    <!-- Logged-in Section -->
+    <div id="userDetails" style="display:none">
+      <h3>Welcome, <span id="userName"></span>!</h3>
+      <button onclick="logout()">Logout</button>
+    </div>
   </div>
 </div>
 <div style="background: linear-gradient(180deg,#03061a 0%, #081730 40%, #0f2a4b 100%);">
@@ -1722,18 +1727,17 @@ document.querySelectorAll(".mobile-drop-btn").forEach(btn => {
  
 <!-- ✅ Firebase Auth Integration (with your same IDs) -->
 <script type="module">
-  // Import Firebase modules
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
   import { 
     getAuth, 
     createUserWithEmailAndPassword, 
     signInWithEmailAndPassword, 
+    signOut, 
     updateProfile,
-    onAuthStateChanged,
-    signOut
+    onAuthStateChanged 
   } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
 
-  // ✅ Your Firebase Config
+  // ✅ Firebase Config
   const firebaseConfig = {
     apiKey: "AIzaSyAZ44erphU3tMWS8-U2QbPmMDr94L3KDKg",
     authDomain: "deals-finder-ac722.firebaseapp.com",
@@ -1747,114 +1751,148 @@ document.querySelectorAll(".mobile-drop-btn").forEach(btn => {
   // ✅ Initialize Firebase
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
-  console.log("✅ Firebase initialized successfully");
-
-  // 🔹 Switch between Login and Signup Forms
-  window.switchForm = function(form) {
-    const loginForm = document.getElementById("loginForm");
-    const signupForm = document.getElementById("signupForm");
-
-    if (form === "login") {
-      loginForm.style.display = "block";
-      signupForm.style.display = "none";
-    } else {
-      loginForm.style.display = "none";
-      signupForm.style.display = "block";
-    }
-  };
+  console.log("✅ Firebase initialized");
 
   // 🔹 Signup
   window.signup = async function() {
-    const name = document.getElementById("signupName").value.trim();
-    const email = document.getElementById("signupEmail").value.trim();
+    const name = document.getElementById("signupName").value;
+    const email = document.getElementById("signupEmail").value;
     const password = document.getElementById("signupPassword").value;
     const confirm = document.getElementById("confirmPassword").value;
     const msg = document.getElementById("signupMessage");
 
-    msg.textContent = "";
-
-    if (!name || !email || !password || !confirm) {
-      msg.textContent = "Please fill all fields!";
-      msg.style.color = "red";
-      return;
-    }
-
     if (password !== confirm) {
-      msg.textContent = "Passwords do not match!";
-      msg.style.color = "red";
+      msg.textContent = "❌ Passwords do not match!";
       return;
     }
 
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCredential.user, { displayName: name });
-      msg.textContent = `✅ Account created for ${name}. You can now log in.`;
-      msg.style.color = "green";
-
-      // Clear fields
-      document.getElementById("signupName").value = "";
-      document.getElementById("signupEmail").value = "";
-      document.getElementById("signupPassword").value = "";
-      document.getElementById("confirmPassword").value = "";
-
-      // Switch to login form
-      setTimeout(() => switchForm("login"), 1500);
-
+      msg.textContent = `✅ Account created for ${name}`;
     } catch (err) {
       msg.textContent = `❌ ${err.message}`;
-      msg.style.color = "red";
     }
   };
 
   // 🔹 Login
   window.login = async function() {
-    const email = document.getElementById("loginEmail").value.trim();
+    const email = document.getElementById("loginEmail").value;
     const password = document.getElementById("loginPassword").value;
     const msg = document.getElementById("loginMessage");
-
-    msg.textContent = "";
-
-    if (!email || !password) {
-      msg.textContent = "Please enter both email and password!";
-      msg.style.color = "red";
-      return;
-    }
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
       msg.textContent = "✅ Login successful!";
-      msg.style.color = "green";
     } catch (err) {
       msg.textContent = `❌ ${err.message}`;
-      msg.style.color = "red";
     }
   };
 
-  // 🔹 Auth State Change (auto detect login/logout)
+  // 🔹 Logout
+  window.logout = async function logout() {
+    try {
+      await signOut(auth); // sign out from Firebase
+      console.log("✅ signOut successful");
+  
+      // Clear any global user reference your app uses
+      window.currentUser = null;
+  
+      // Clear UI messages
+      const loginMsg = document.getElementById("loginMessage");
+      const signupMsg = document.getElementById("signupMessage");
+      if (loginMsg) { loginMsg.textContent = ""; loginMsg.style.color = ""; }
+      if (signupMsg) { signupMsg.textContent = ""; signupMsg.style.color = ""; }
+  
+      // Reset login button text if you use one
+      const loginBtn = document.getElementById("loginBtn");
+      if (loginBtn) loginBtn.textContent = "Login";
+  
+      // If you show the user name next to the login button, clear it
+      const loginUserDisplay = document.getElementById("loginUserDisplay");
+      if (loginUserDisplay) loginUserDisplay.textContent = "";
+  
+      // Hide userDetails and show login form
+      const userDetails = document.getElementById("userDetails");
+      const loginForm = document.getElementById("loginForm");
+      const signupForm = document.getElementById("signupForm");
+      if (userDetails) userDetails.style.display = "none";
+      if (loginForm) loginForm.style.display = "block";
+      if (signupForm) signupForm.style.display = "none";
+      
+      const loginMessage = document.getElementById("loginMessage");
+      if (loginMessage) {
+        const appendedLogout = loginMessage.querySelector('button[data-logout-btn="1"]');
+        if (appendedLogout) appendedLogout.remove();
+      }
+  
+    } catch (err) {
+      console.error("signOut error:", err);
+      alert("Logout failed: " + (err.message || err.code || "unknown error"));
+    }
+  };
+  
+  // Better onAuthStateChanged handler (replace previous handler)
   onAuthStateChanged(auth, (user) => {
     const loginForm = document.getElementById("loginForm");
     const signupForm = document.getElementById("signupForm");
+    const userDetails = document.getElementById("userDetails");
+    const userName = document.getElementById("userName");
     const loginMsg = document.getElementById("loginMessage");
-
+    const loginBtn = document.getElementById("loginBtn");
+    const loginUserDisplay = document.getElementById("loginUserDisplay");
+  
     if (user) {
-      // User logged in
-      const name = user.displayName || user.email;
-      loginMsg.textContent = `👋 Logged in as ${name}`;
-      loginMsg.style.color = "green";
-      loginForm.style.display = "none";
-      signupForm.style.display = "none";
-
-      // Optional: show a logout button
-      const logoutBtn = document.createElement("button");
-      logoutBtn.textContent = "Logout";
-      logoutBtn.style.marginTop = "10px";
-      logoutBtn.onclick = () => signOut(auth);
-      loginMsg.appendChild(logoutBtn);
+      const displayName = user.displayName || user.email;
+  
+      // store global user for other logic
+      window.currentUser = user;
+  
+      // update UI consistently
+      if (loginForm) loginForm.style.display = "none";
+      if (signupForm) signupForm.style.display = "none";
+      if (userDetails) userDetails.style.display = "block";
+      if (userName) userName.textContent = displayName;
+      if (loginMsg) {
+        loginMsg.textContent = `👋 Logged in as ${displayName}`;
+        loginMsg.style.color = "green";
+      }
+      if (loginBtn) loginBtn.textContent = displayName;
+      if (loginUserDisplay) loginUserDisplay.textContent = `(${displayName})`;
+  
+      // Ensure there's no duplicate appended logout button in the message area.
+      if (loginMsg) {
+        // If you want a logout button inside loginMessage, append only once and mark it
+        if (!loginMsg.querySelector('button[data-logout-btn="1"]')) {
+          const btn = document.createElement("button");
+          btn.textContent = "Logout";
+          btn.dataset.logoutBtn = "1";
+          btn.style.marginLeft = "8px";
+          btn.onclick = () => logout();
+          loginMsg.appendChild(btn);
+        }
+      }
+  
     } else {
-      // User logged out
-      loginForm.style.display = "block";
-      signupForm.style.display = "none";
-      loginMsg.textContent = "";
+      // Clear global user
+      window.currentUser = null;
+  
+      // Restore forms
+      if (loginForm) loginForm.style.display = "block";
+      if (signupForm) signupForm.style.display = "none";
+      if (userDetails) userDetails.style.display = "none";
+  
+      // Clear displayed username
+      if (userName) userName.textContent = "";
+      if (loginMsg) loginMsg.textContent = "";
+      if (loginBtn) loginBtn.textContent = "Login";
+      if (loginUserDisplay) loginUserDisplay.textContent = "";
+  
+      // If you appended a logout button under loginMessage earlier, remove it
+      if (loginMsg) {
+        const appendedLogout = loginMsg.querySelector('button[data-logout-btn="1"]');
+        if (appendedLogout) appendedLogout.remove();
+      }
     }
   });
 </script>

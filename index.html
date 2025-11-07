@@ -1684,47 +1684,57 @@
     const password = document.getElementById("signupPassword").value;
     const confirm = document.getElementById("confirmPassword").value;
     const msg = document.getElementById("signupMessage");
-
+  
     if (password !== confirm) {
       msg.textContent = "❌ Passwords do not match!";
       return;
     }
-
+  
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCredential.user, { displayName: name });
       msg.textContent = `✅ Account created for ${name}`;
+      
+      // Redirect to homepage after signup success
+      setTimeout(() => {
+        window.location.href = "index.html";}, 1000);
     } catch (err) {
       msg.textContent = `❌ ${err.message}`;
     }
   };
-
+  
+  
   window.login = async function () {
     const email = document.getElementById("loginEmail").value;
     const password = document.getElementById("loginPassword").value;
     const msg = document.getElementById("loginMessage");
-
+  
     try {
       await signInWithEmailAndPassword(auth, email, password);
       msg.textContent = "✅ Login successful!";
+  
+      // Redirect to homepage after successful login
+      setTimeout(() => {
+        window.location.href = "index.html"; 
+      }, 1000);
     } catch (err) {
       msg.textContent = `❌ ${err.message}`;
     }
   };
-
+  
+  
   window.logout = async function () {
     try {
       await signOut(auth);
       console.log("✅ Logged out");
+      
+      // Redirect to login page after logout
+      window.location.href = "index.html"; 
     } catch (err) {
       alert("Logout failed: " + err.message);
     }
   };
-
+  
   // 🔹 Monitor auth state
   onAuthStateChanged(auth, (user) => {
     const loginForm = document.getElementById("loginForm");
@@ -1763,6 +1773,7 @@
       if (loginMsg) loginMsg.textContent = "";
     }
   });
+  
 </script>
 
 <!-- <script src="./script.js"></script> -->
